@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ChevronRight, Heart, Minus, Plus, ShoppingCart, Star, Truck, ShieldCheck, RotateCcw } from "lucide-react";
 import { SiteLayout } from "@/components/site-layout";
 import { ProductCard } from "@/components/product-card";
+import { ProductVisual } from "@/components/product-visual";
 import { findCategory, KES } from "@/lib/catalog";
 import { fetchStorefrontProducts } from "@/lib/storefront-products";
 import { useCart, useWishlist } from "@/lib/store";
@@ -67,17 +68,15 @@ function ProductPage() {
       <div className="container mx-auto px-4 mt-4 grid lg:grid-cols-[1fr_1fr_280px] gap-5">
         {/* Image gallery */}
         <div>
-          <div className={cn("aspect-square rounded-xl border border-border overflow-hidden shadow-card", product.bg)}>
-            {product.imageUrl ? (
-              <img
-                src={product.imageUrl}
-                alt={product.name}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="h-full w-full grid place-items-center text-9xl">{product.image}</div>
-            )}
-          </div>
+          <ProductVisual
+            imageUrl={product.imageUrl}
+            image={product.image}
+            bg={product.bg}
+            alt={product.name}
+            className="aspect-square rounded-xl border border-border overflow-hidden shadow-card"
+            imageClassName="object-cover"
+            emojiClassName="text-9xl"
+          />
           <div className="mt-3 grid grid-cols-4 gap-2">
             {[
               product.imageUrl ?? product.image,
@@ -89,11 +88,15 @@ function ProductPage() {
                 key={i}
                 className={cn("aspect-square rounded-lg border border-border overflow-hidden grid place-items-center text-3xl", product.bg, i === 0 && "ring-2 ring-primary")}
               >
-                {typeof g === "string" && g.startsWith("http") ? (
-                  <img src={g} alt={product.name} className="h-full w-full object-cover" />
-                ) : (
-                  g
-                )}
+                <ProductVisual
+                  imageUrl={typeof g === "string" && g.startsWith("http") ? g : undefined}
+                  image={typeof g === "string" && g.startsWith("http") ? product.image : g}
+                  bg={product.bg}
+                  alt={product.name}
+                  className="h-full w-full"
+                  imageClassName="object-cover"
+                  emojiClassName="text-3xl"
+                />
               </button>
             ))}
           </div>
