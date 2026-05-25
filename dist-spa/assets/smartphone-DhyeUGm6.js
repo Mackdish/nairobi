@@ -1,0 +1,1 @@
+import{c as t}from"./tslib.es6-Cy5WzERd.js";const e=[["rect",{width:"18",height:"11",x:"3",y:"11",rx:"2",ry:"2",key:"1w4ew1"}],["path",{d:"M7 11V7a5 5 0 0 1 10 0v4",key:"fwvmzm"}]],h=t("lock",e);const o=[["rect",{width:"14",height:"20",x:"5",y:"2",rx:"2",ry:"2",key:"1yt0o3"}],["path",{d:"M12 18h.01",key:"mhygvu"}]],r=t("smartphone",o);export{h as L,r as S};
