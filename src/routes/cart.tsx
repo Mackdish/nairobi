@@ -64,8 +64,12 @@ function CartPage() {
           <div className="bg-card border border-border rounded-xl divide-y divide-border">
             {items.map((i) => (
               <div key={i.product.id} className="p-4 flex gap-3 sm:gap-4 items-center">
-                <Link to="/product/$id" params={{ id: i.product.id }} className={`h-20 w-20 sm:h-24 sm:w-24 rounded-lg grid place-items-center text-4xl shrink-0 ${i.product.bg}`}>
-                  {i.product.image}
+                <Link to="/product/$id" params={{ id: i.product.id }} className={`h-20 w-20 sm:h-24 sm:w-24 rounded-lg overflow-hidden shrink-0 ${i.product.bg}`}>
+                  {i.product.imageUrl ? (
+                    <img src={i.product.imageUrl} alt={i.product.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="h-full w-full grid place-items-center text-4xl">{i.product.image}</div>
+                  )}
                 </Link>
                 <div className="flex-1 min-w-0">
                   <Link to="/product/$id" params={{ id: i.product.id }} className="font-semibold hover:text-primary line-clamp-2 text-sm sm:text-base">

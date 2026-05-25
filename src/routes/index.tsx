@@ -1,21 +1,24 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight, Truck, ShieldCheck, CreditCard, Headphones } from "lucide-react";
 import { SiteLayout } from "@/components/site-layout";
 import { HeroCarousel } from "@/components/hero-carousel";
 import { CategoryBar } from "@/components/category-bar";
 import { ProductSlider } from "@/components/product-slider";
 import { ProductCard } from "@/components/product-card";
+import { CATEGORIES, type Product } from "@/lib/catalog";
 import {
-  CATEGORIES,
-  bestSellers,
-  featuredProducts,
-  flashDeals,
-  newArrivals,
-  productsByCategory,
-} from "@/lib/catalog";
-import { Link } from "@tanstack/react-router";
-import { ArrowRight, Truck, ShieldCheck, CreditCard, Headphones } from "lucide-react";
+  fetchStorefrontProducts,
+  getBestSellers,
+  getFeaturedProducts,
+  getFlashDeals,
+  getNewArrivals,
+  getProductsByCategory,
+} from "@/lib/storefront-products";
 
 export const Route = createFileRoute("/")({
+  loader: async () => ({
+    products: await fetchStorefrontProducts(),
+  }),
   head: () => ({
     meta: [
       { title: "Intech Computer Shop — Laptops, TVs & Electronics in Kenya" },
@@ -36,8 +39,10 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
-  const featuredLaptops = productsByCategory("laptops-desktops").slice(0, 6);
-  const featuredTvs = productsByCategory("tvs").slice(0, 6);
+  const { products } = Route.useLoaderData();
+
+  const featuredLaptops = getProductsByCategory(products, "laptops-desktops").slice(0, 6);
+  const featuredTvs = getProductsByCategory(products, "tvs").slice(0, 6);
 
   return (
     <SiteLayout>
@@ -47,7 +52,6 @@ function HomePage() {
 
       <CategoryBar />
 
-      {/* Trust strip */}
       <section className="container mx-auto px-4 mt-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           {[
@@ -56,7 +60,10 @@ function HomePage() {
             { icon: CreditCard, title: "Pay with M-Pesa", desc: "Secure STK Push" },
             { icon: Headphones, title: "24/7 Support", desc: "Call or WhatsApp" },
           ].map((f) => (
-            <div key={f.title} className="flex items-center gap-3 p-3 sm:p-4 bg-card rounded-lg border border-border shadow-card">
+            <div
+              key={f.title}
+              className="flex items-center gap-3 p-3 sm:p-4 bg-card rounded-lg border border-border shadow-card"
+            >
               <div className="h-10 w-10 sm:h-11 sm:w-11 grid place-items-center rounded-full bg-accent text-primary shrink-0">
                 <f.icon className="h-5 w-5" />
               </div>
@@ -69,10 +76,9 @@ function HomePage() {
         </div>
       </section>
 
-      <ProductSlider title="🔥 Flash Deals" accent="warning" products={flashDeals()} />
-      <ProductSlider title="Featured Products" accent="primary" products={featuredProducts()} />
+      <ProductSlider title="🔥 Flash Deals" accent="warning" products={getFlashDeals(products)} />
+      <ProductSlider title="Featured Products" accent="primary" products={getFeaturedProducts(products)} />
 
-      {/* Featured category: Laptops */}
       <FeaturedCategoryBlock
         slug="laptops-desktops"
         title="Laptops & Desktops"
@@ -80,9 +86,8 @@ function HomePage() {
         products={featuredLaptops}
       />
 
-      <ProductSlider title="Best Sellers" accent="brand" products={bestSellers()} />
+      <ProductSlider title="Best Sellers" accent="brand" products={getBestSellers(products)} />
 
-      {/* Featured category: TVs */}
       <FeaturedCategoryBlock
         slug="tvs"
         title="TVs & TV Accessories"
@@ -90,9 +95,8 @@ function HomePage() {
         products={featuredTvs}
       />
 
-      <ProductSlider title="New Arrivals" accent="primary" products={newArrivals()} />
+      <ProductSlider title="New Arrivals" accent="primary" products={getNewArrivals(products)} />
 
-      {/* All categories teaser */}
       <section className="container mx-auto px-4 mt-12">
         <h2 className="text-xl sm:text-2xl font-extrabold mb-4">Shop by Category</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
@@ -122,7 +126,7 @@ function FeaturedCategoryBlock({
   slug: string;
   title: string;
   tagline: string;
-  products: ReturnType<typeof productsByCategory>;
+  products: Product[];
 }) {
   return (
     <section className="container mx-auto px-4 mt-12">

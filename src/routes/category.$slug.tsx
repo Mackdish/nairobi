@@ -1,16 +1,17 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { SiteLayout } from "@/components/site-layout";
-import { ProductCard } from "@/components/product-card";
-import { findCategory, PRODUCTS } from "@/lib/catalog";
 import { useMemo, useState } from "react";
 import { ChevronRight, SlidersHorizontal } from "lucide-react";
+import { SiteLayout } from "@/components/site-layout";
+import { ProductCard } from "@/components/product-card";
+import { findCategory, type Product } from "@/lib/catalog";
+import { fetchStorefrontProducts } from "@/lib/storefront-products";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/category/$slug")({
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
     const cat = findCategory(params.slug);
     if (!cat) throw notFound();
-    return { cat };
+    return { cat, products: await fetchStorefrontProducts() };
   },
   head: ({ loaderData }) => ({
     meta: [
@@ -33,19 +34,22 @@ export const Route = createFileRoute("/category/$slug")({
 });
 
 function CategoryPage() {
-  const { cat } = Route.useLoaderData();
-  const products = useMemo(() => PRODUCTS.filter((p) => p.category === cat.slug), [cat.slug]);
+  const { cat, products } = Route.useLoaderData();
 
-  const brands = useMemo(() => Array.from(new Set(products.map((p) => p.brand))), [products]);
+  const categoryProducts = useMemo(
+    () => products.filter((p) => p.category === cat.slug),
+    [cat.slug, products],
+  );
+  const brands = useMemo(() => Array.from(new Set(categoryProducts.map((p) => p.brand))), [categoryProducts]);
   const [activeSub, setActiveSub] = useState<string | null>(null);
   const [activeBrands, setActiveBrands] = useState<string[]>([]);
   const [maxPrice, setMaxPrice] = useState<number>(
-    products.length ? Math.max(...products.map((p) => p.price)) : 200000,
+    categoryProducts.length ? Math.max(...categoryProducts.map((p) => p.price)) : 200000,
   );
   const [sort, setSort] = useState<"featured" | "price-asc" | "price-desc" | "rating" | "newest">("featured");
 
   const filtered = useMemo(() => {
-    let list = products.filter((p) => p.price <= maxPrice);
+    let list = categoryProducts.filter((p) => p.price <= maxPrice);
     if (activeSub) list = list.filter((p) => p.sub === activeSub);
     if (activeBrands.length) list = list.filter((p) => activeBrands.includes(p.brand));
     switch (sort) {
@@ -55,7 +59,7 @@ function CategoryPage() {
       case "newest": list = [...list].sort((a, b) => (b.badge === "new" ? 1 : 0) - (a.badge === "new" ? 1 : 0)); break;
     }
     return list;
-  }, [products, activeSub, activeBrands, maxPrice, sort]);
+  }, [categoryProducts, activeSub, activeBrands, maxPrice, sort]);
 
   const toggleBrand = (b: string) =>
     setActiveBrands((prev) => (prev.includes(b) ? prev.filter((x) => x !== b) : [...prev, b]));
@@ -136,7 +140,7 @@ function CategoryPage() {
             <input
               type="range"
               min={1000}
-              max={Math.max(...products.map((p) => p.price), 200000)}
+              max={Math.max(...categoryProducts.map((p) => p.price), 200000)}
               step={1000}
               value={maxPrice}
               onChange={(e) => setMaxPrice(Number(e.target.value))}

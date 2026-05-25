@@ -1,18 +1,23 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { SiteLayout } from "@/components/site-layout";
-import { ProductCard } from "@/components/product-card";
-import { findCategory, findProduct, KES, PRODUCTS } from "@/lib/catalog";
-import { useCart, useWishlist } from "@/lib/store";
 import { useState } from "react";
 import { ChevronRight, Heart, Minus, Plus, ShoppingCart, Star, Truck, ShieldCheck, RotateCcw } from "lucide-react";
+import { SiteLayout } from "@/components/site-layout";
+import { ProductCard } from "@/components/product-card";
+import { findCategory, KES } from "@/lib/catalog";
+import { fetchStorefrontProducts } from "@/lib/storefront-products";
+import { useCart, useWishlist } from "@/lib/store";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/product/$id")({
-  loader: ({ params }) => {
-    const product = findProduct(params.id);
+  loader: async ({ params }) => {
+    const products = await fetchStorefrontProducts();
+    const product = products.find((item) => item.id === params.id);
     if (!product) throw notFound();
-    return { product };
+    return {
+      product,
+      related: products.filter((item) => item.category === product.category && item.id !== product.id).slice(0, 6),
+    };
   },
   head: ({ loaderData }) => ({
     meta: [
@@ -37,14 +42,12 @@ export const Route = createFileRoute("/product/$id")({
 });
 
 function ProductPage() {
-  const { product } = Route.useLoaderData();
+  const { product, related } = Route.useLoaderData();
   const cat = findCategory(product.category);
   const add = useCart((s) => s.add);
   const toggleWish = useWishlist((s) => s.toggle);
   const wished = useWishlist((s) => s.ids.includes(product.id));
   const [qty, setQty] = useState(1);
-
-  const related = PRODUCTS.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 6);
   const discount = product.oldPrice ? Math.round((1 - product.price / product.oldPrice) * 100) : 0;
 
   return (
@@ -64,16 +67,33 @@ function ProductPage() {
       <div className="container mx-auto px-4 mt-4 grid lg:grid-cols-[1fr_1fr_280px] gap-5">
         {/* Image gallery */}
         <div>
-          <div className={cn("aspect-square rounded-xl border border-border grid place-items-center text-9xl shadow-card", product.bg)}>
-            {product.image}
+          <div className={cn("aspect-square rounded-xl border border-border overflow-hidden shadow-card", product.bg)}>
+            {product.imageUrl ? (
+              <img
+                src={product.imageUrl}
+                alt={product.name}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="h-full w-full grid place-items-center text-9xl">{product.image}</div>
+            )}
           </div>
           <div className="mt-3 grid grid-cols-4 gap-2">
-            {[product.image, "📦", "✨", "🛡️"].map((g, i) => (
+            {[
+              product.imageUrl ?? product.image,
+              product.imageUrl ?? "📦",
+              product.imageUrl ?? "✨",
+              product.imageUrl ?? "🛡️",
+            ].map((g, i) => (
               <button
                 key={i}
-                className={cn("aspect-square rounded-lg border border-border grid place-items-center text-3xl", product.bg, i === 0 && "ring-2 ring-primary")}
+                className={cn("aspect-square rounded-lg border border-border overflow-hidden grid place-items-center text-3xl", product.bg, i === 0 && "ring-2 ring-primary")}
               >
-                {g}
+                {typeof g === "string" && g.startsWith("http") ? (
+                  <img src={g} alt={product.name} className="h-full w-full object-cover" />
+                ) : (
+                  g
+                )}
               </button>
             ))}
           </div>
@@ -181,7 +201,7 @@ function ProductPage() {
             <h2 className="text-xl sm:text-2xl font-extrabold">Related Products</h2>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-            {related.map((p) => <ProductCard key={p.id} product={p} />)}
+            {related.map((product) => <ProductCard key={product.id} product={product} />)}
           </div>
         </section>
       )}

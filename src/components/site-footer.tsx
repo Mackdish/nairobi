@@ -51,7 +51,7 @@ export function SiteFooter() {
           <ul className="space-y-3 text-sm">
             <li className="flex items-start gap-2">
               <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-primary-glow" />
-              <span>Moi Avenue, Nairobi, Kenya</span>
+              <span>  World Business Center 3rd floor, Nairobi, Kenya</span>
             </li>
             <li className="flex items-center gap-2">
               <Phone className="h-4 w-4 text-primary-glow" />
@@ -79,7 +79,7 @@ export function SiteFooter() {
       <div className="border-t border-white/10">
         <div className="container mx-auto px-4 py-4 text-xs text-white/60 flex flex-col sm:flex-row justify-between gap-2">
           <div>© {new Date().getFullYear()} Intech Computer Shop. All rights reserved.</div>
-          <div>Made with ♥ in Nairobi</div>
+          <div>Designed by Mackdish Solutions 0705186502</div>
         </div>
       </div>
     </footer>
