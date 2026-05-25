@@ -262,7 +262,13 @@ function CheckoutPage() {
             <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
               {items.map((i) => (
                 <div key={i.product.id} className="flex gap-2 items-center text-sm">
-                  <div className={`h-12 w-12 rounded grid place-items-center text-2xl shrink-0 ${i.product.bg}`}>{i.product.image}</div>
+                  <div className={`h-12 w-12 rounded overflow-hidden shrink-0 ${i.product.bg}`}>
+                    {i.product.imageUrl ? (
+                      <img src={i.product.imageUrl} alt={i.product.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="grid place-items-center h-full w-full text-2xl">{i.product.image}</div>
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="line-clamp-1 text-xs font-medium">{i.product.name}</div>
                     <div className="text-xs text-muted-foreground">Qty {i.qty}</div>

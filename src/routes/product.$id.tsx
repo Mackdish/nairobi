@@ -64,19 +64,20 @@ function ProductPage() {
       <div className="container mx-auto px-4 mt-4 grid lg:grid-cols-[1fr_1fr_280px] gap-5">
         {/* Image gallery */}
         <div>
-          <div className={cn("aspect-square rounded-xl border border-border grid place-items-center text-9xl shadow-card", product.bg)}>
-            {product.image}
+          <div className={cn("aspect-square rounded-xl border border-border overflow-hidden shadow-card", product.bg)}>
+            {product.imageUrl ? (
+              <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
+            ) : (
+              <div className="grid place-items-center h-full w-full text-9xl">{product.image}</div>
+            )}
           </div>
-          <div className="mt-3 grid grid-cols-4 gap-2">
-            {[product.image, "📦", "✨", "🛡️"].map((g, i) => (
-              <button
-                key={i}
-                className={cn("aspect-square rounded-lg border border-border grid place-items-center text-3xl", product.bg, i === 0 && "ring-2 ring-primary")}
-              >
-                {g}
+          {product.imageUrl && (
+            <div className="mt-3 grid grid-cols-4 gap-2">
+              <button className={cn("aspect-square rounded-lg border border-border overflow-hidden ring-2 ring-primary", product.bg)}>
+                <img src={product.imageUrl} alt={`${product.name} thumbnail`} className="h-full w-full object-cover" />
               </button>
-            ))}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Info */}
