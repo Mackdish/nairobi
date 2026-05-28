@@ -114,6 +114,7 @@ export type Product = {
   specs?: Record<string, string>;
   description?: string;
   imageUrl?: string; // optional real image; falls back to emoji tile
+  imageUrls?: string[]; // optional gallery images; first image is used as primary visual
 };
 
 // Visual placeholder approach: each product gets a colored tile + emoji mark.

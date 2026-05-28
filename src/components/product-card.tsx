@@ -86,8 +86,10 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
         </div>
         <div className="mt-1.5">
           <div className="text-base font-bold text-brand">{KES(product.price)}</div>
-          {product.oldPrice && (
-            <div className="text-xs text-muted-foreground line-through">{KES(product.oldPrice)}</div>
+          {product.oldPrice && product.oldPrice > product.price && (
+            <div className="text-xs text-muted-foreground line-through">
+              Was {KES(product.oldPrice)}
+            </div>
           )}
         </div>
         <button

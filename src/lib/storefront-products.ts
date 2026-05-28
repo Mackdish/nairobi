@@ -100,6 +100,9 @@ export function mapDatabaseProduct(row: ProductRow): Product {
   const visual = resolveCategoryVisual(category);
   const categoryName = CATEGORIES.find((item) => item.slug === category)?.name ?? capitalizeSlug(category);
   const brand = getBrandFromName(row.name) || categoryName.split(" ")[0] || "Intech";
+  const imageUrls = Array.from(
+    new Set([...(row.image_urls ?? []), row.image_url].filter((url): url is string => Boolean(url))),
+  );
 
   return {
     id: row.id,
@@ -112,10 +115,15 @@ export function mapDatabaseProduct(row: ProductRow): Product {
     rating: 4.5,
     reviews: 0,
     stock: Number(row.stock ?? 0),
+    oldPrice:
+      row.old_price && Number(row.old_price) > Number(row.price ?? 0)
+        ? Number(row.old_price)
+        : undefined,
     description:
       row.description ??
       `Premium ${row.name} from ${brand} — available at Intech Computer Shop with Nairobi delivery and nationwide shipping.`,
-    imageUrl: row.image_url ?? undefined,
+    imageUrl: imageUrls[0],
+    imageUrls: imageUrls.length ? imageUrls : undefined,
   };
 }
 

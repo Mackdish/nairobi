@@ -50,6 +50,9 @@ function ProductPage() {
   const wished = useWishlist((s) => s.ids.includes(product.id));
   const [qty, setQty] = useState(1);
   const discount = product.oldPrice ? Math.round((1 - product.price / product.oldPrice) * 100) : 0;
+  const gallery = product.imageUrls?.length ? product.imageUrls : product.imageUrl ? [product.imageUrl] : [];
+  const fallbackGallery = gallery.length ? gallery : [product.image, "ðŸ“¦", "âœ¨", "ðŸ›¡ï¸"];
+  const [selectedImage, setSelectedImage] = useState(fallbackGallery[0]);
 
   return (
     <SiteLayout>
@@ -69,8 +72,8 @@ function ProductPage() {
         {/* Image gallery */}
         <div>
           <ProductVisual
-            imageUrl={product.imageUrl}
-            image={product.image}
+            imageUrl={typeof selectedImage === "string" && selectedImage.startsWith("http") ? selectedImage : undefined}
+            image={typeof selectedImage === "string" && selectedImage.startsWith("http") ? product.image : selectedImage}
             bg={product.bg}
             alt={product.name}
             className="aspect-square rounded-xl border border-border overflow-hidden shadow-card"
@@ -78,15 +81,12 @@ function ProductPage() {
             emojiClassName="text-9xl"
           />
           <div className="mt-3 grid grid-cols-4 gap-2">
-            {[
-              product.imageUrl ?? product.image,
-              product.imageUrl ?? "📦",
-              product.imageUrl ?? "✨",
-              product.imageUrl ?? "🛡️",
-            ].map((g, i) => (
+            {fallbackGallery.slice(0, 8).map((g, i) => (
               <button
                 key={i}
-                className={cn("aspect-square rounded-lg border border-border overflow-hidden grid place-items-center text-3xl", product.bg, i === 0 && "ring-2 ring-primary")}
+                type="button"
+                onClick={() => setSelectedImage(g)}
+                className={cn("aspect-square rounded-lg border border-border overflow-hidden grid place-items-center text-3xl", product.bg, selectedImage === g && "ring-2 ring-primary")}
               >
                 <ProductVisual
                   imageUrl={typeof g === "string" && g.startsWith("http") ? g : undefined}
@@ -121,7 +121,7 @@ function ProductPage() {
 
           <div className="mt-4 flex items-end gap-3 flex-wrap">
             <div className="text-3xl sm:text-4xl font-extrabold text-brand">{KES(product.price)}</div>
-            {product.oldPrice && (
+            {product.oldPrice && product.oldPrice > product.price && (
               <>
                 <div className="text-lg text-muted-foreground line-through">{KES(product.oldPrice)}</div>
                 <span className="bg-brand text-white text-xs font-bold px-2 py-1 rounded">Save {discount}%</span>
@@ -152,7 +152,15 @@ function ProductPage() {
 
         {/* Buy box */}
         <aside className="bg-card border border-border rounded-xl p-4 h-fit lg:sticky lg:top-32 space-y-3 shadow-card">
-          <div className="text-2xl font-extrabold text-brand">{KES(product.price)}</div>
+          <div>
+            <div className="text-2xl font-extrabold text-brand">{KES(product.price)}</div>
+            {product.oldPrice && product.oldPrice > product.price && (
+              <div className="mt-0.5 flex items-center gap-2">
+                <span className="text-sm text-muted-foreground line-through">{KES(product.oldPrice)}</span>
+                <span className="rounded bg-brand px-1.5 py-0.5 text-[11px] font-bold text-white">Save {discount}%</span>
+              </div>
+            )}
+          </div>
           <div className="text-sm text-success font-semibold">✓ {product.stock > 0 ? "In stock — ready to ship" : "Out of stock"}</div>
 
           <div className="flex items-center gap-2">

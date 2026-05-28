@@ -49,9 +49,11 @@ type Product = {
   description: string | null;
   category: string;
   price: number;
+  old_price: number | null;
   stock: number;
   low_stock_threshold: number;
   image_url: string | null;
+  image_urls: string[];
   active: boolean;
   created_at: string;
   updated_at: string;
@@ -62,9 +64,10 @@ type FormState = {
   description: string;
   category: string;
   price: string;
+  old_price: string;
   stock: string;
   low_stock_threshold: string;
-  image_url: string;
+  image_urls: string[];
   active: boolean;
 };
 
@@ -73,13 +76,25 @@ const EMPTY_FORM: FormState = {
   description: "",
   category: "",
   price: "0",
+  old_price: "",
   stock: "0",
   low_stock_threshold: "5",
-  image_url: "",
+  image_urls: [],
   active: true,
 };
 
 const KES = new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 });
+
+function normalizeImageUrls(urls: unknown, primary?: string | null) {
+  const list = Array.isArray(urls) ? urls : [];
+  return Array.from(
+    new Set(
+      [...list, primary]
+        .map((url) => (typeof url === "string" ? url.trim() : ""))
+        .filter(Boolean),
+    ),
+  );
+}
 
 function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -327,7 +342,14 @@ function AdminProductsPage() {
                           </div>
                         </TableCell>
                         <TableCell className="text-sm">{p.category}</TableCell>
-                        <TableCell className="font-semibold">{KES.format(Number(p.price))}</TableCell>
+                        <TableCell>
+                          <div className="font-semibold">{KES.format(Number(p.price))}</div>
+                          {p.old_price && Number(p.old_price) > Number(p.price) && (
+                            <div className="text-xs text-muted-foreground line-through">
+                              {KES.format(Number(p.old_price))}
+                            </div>
+                          )}
+                        </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <span>{p.stock}</span>
@@ -394,9 +416,10 @@ function ProductDialog({
           description: editing.description ?? "",
           category: editing.category,
           price: String(editing.price),
+          old_price: editing.old_price ? String(editing.old_price) : "",
           stock: String(editing.stock),
           low_stock_threshold: String(editing.low_stock_threshold),
-          image_url: editing.image_url ?? "",
+          image_urls: normalizeImageUrls(editing.image_urls, editing.image_url),
           active: editing.active,
         }
       : EMPTY_FORM,
@@ -414,14 +437,19 @@ function ProductDialog({
       return;
     }
     setSaving(true);
+    const image_urls = normalizeImageUrls(form.image_urls);
+    const price = Number(form.price) || 0;
+    const old_price = Number(form.old_price) || null;
     const payload = {
       name: form.name.trim(),
       description: form.description.trim() || null,
       category: form.category.trim(),
-      price: Number(form.price) || 0,
+      price,
+      old_price: old_price && old_price > price ? old_price : null,
       stock: Number(form.stock) || 0,
       low_stock_threshold: Number(form.low_stock_threshold) || 0,
-      image_url: form.image_url.trim() || null,
+      image_url: image_urls[0] ?? null,
+      image_urls,
       active: form.active,
     };
 
@@ -465,15 +493,26 @@ function ProductDialog({
             required
           />
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="space-y-2">
-            <Label htmlFor="price">Price (KES)</Label>
+            <Label htmlFor="price">Selling price (KES)</Label>
             <Input
               id="price"
               type="number"
               min="0"
               value={form.price}
               onChange={(e) => set("price", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="old_price">Original price (KES)</Label>
+            <Input
+              id="old_price"
+              type="number"
+              min="0"
+              value={form.old_price}
+              onChange={(e) => set("old_price", e.target.value)}
+              placeholder="Optional"
             />
           </div>
           <div className="space-y-2">
@@ -498,10 +537,10 @@ function ProductDialog({
           </div>
         </div>
         <div className="space-y-2">
-          <Label>Product image</Label>
+          <Label>Product images</Label>
           <ImageUploader
-            value={form.image_url}
-            onChange={(url) => set("image_url", url)}
+            value={form.image_urls}
+            onChange={(urls) => set("image_urls", urls)}
           />
         </div>
         <div className="space-y-2">
@@ -538,52 +577,82 @@ function ImageUploader({
   value,
   onChange,
 }: {
-  value: string;
-  onChange: (url: string) => void;
+  value: string[];
+  onChange: (urls: string[]) => void;
 }) {
   const [uploading, setUploading] = useState(false);
+  const [urlInput, setUrlInput] = useState("");
 
-  async function handleFile(file: File) {
+  async function uploadFile(file: File) {
     if (!file.type.startsWith("image/")) {
       toast.error("Please select an image file");
-      return;
+      return null;
     }
     if (file.size > 5 * 1024 * 1024) {
       toast.error("Image must be under 5MB");
-      return;
+      return null;
     }
-    setUploading(true);
     const ext = file.name.split(".").pop() || "jpg";
     const path = `${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage
       .from("product-images")
       .upload(path, file, { cacheControl: "3600", upsert: false, contentType: file.type });
     if (error) {
-      setUploading(false);
       toast.error(error.message || "Upload failed");
-      return;
+      return null;
     }
     const { data } = supabase.storage.from("product-images").getPublicUrl(path);
-    onChange(data.publicUrl);
+    return data.publicUrl;
+  }
+
+  async function handleFiles(files: FileList | null) {
+    const list = Array.from(files ?? []);
+    if (!list.length) return;
+    setUploading(true);
+    const uploaded: string[] = [];
+    for (const file of list) {
+      const url = await uploadFile(file);
+      if (url) uploaded.push(url);
+    }
     setUploading(false);
-    toast.success("Image uploaded");
+    if (uploaded.length) {
+      onChange(normalizeImageUrls([...value, ...uploaded]));
+      toast.success(`${uploaded.length} image${uploaded.length === 1 ? "" : "s"} uploaded`);
+    }
+  }
+
+  function removeAt(index: number) {
+    onChange(value.filter((_, i) => i !== index));
+  }
+
+  function addPastedUrl() {
+    const next = urlInput.trim();
+    if (!next) return;
+    onChange(normalizeImageUrls([...value, next]));
+    setUrlInput("");
   }
 
   return (
-    <div className="space-y-2">
-      {value ? (
-        <div className="relative w-32 h-32 rounded-md border bg-muted overflow-hidden">
-          <img src={value} alt="Product" className="w-full h-full object-cover" />
-          <button
-            type="button"
-            onClick={() => onChange("")}
-            className="absolute top-1 right-1 bg-background/90 rounded-full p-1 hover:bg-background"
-            aria-label="Remove image"
-          >
-            <X className="h-3 w-3" />
-          </button>
-        </div>
-      ) : (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2">
+        {value.map((url, index) => (
+          <div key={`${url}-${index}`} className="relative w-24 h-24 rounded-md border bg-muted overflow-hidden">
+            <img src={url} alt={`Product ${index + 1}`} className="w-full h-full object-cover" />
+            {index === 0 && (
+              <span className="absolute left-1 bottom-1 rounded bg-background/90 px-1.5 py-0.5 text-[10px] font-medium">
+                Primary
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => removeAt(index)}
+              className="absolute top-1 right-1 bg-background/90 rounded-full p-1 hover:bg-background"
+              aria-label="Remove image"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        ))}
         <label className="flex flex-col items-center justify-center w-32 h-32 rounded-md border-2 border-dashed cursor-pointer hover:bg-muted/50 transition-colors">
           {uploading ? (
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -596,22 +665,27 @@ function ImageUploader({
           <input
             type="file"
             accept="image/*"
+            multiple
             className="hidden"
             disabled={uploading}
             onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleFile(f);
+              handleFiles(e.target.files);
               e.target.value = "";
             }}
           />
         </label>
-      )}
-      <Input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="Or paste an image URL"
-        className="text-xs"
-      />
+      </div>
+      <div className="flex gap-2">
+        <Input
+          value={urlInput}
+          onChange={(e) => setUrlInput(e.target.value)}
+          placeholder="Paste an image URL"
+          className="text-xs"
+        />
+        <Button type="button" variant="outline" onClick={addPastedUrl}>
+          Add URL
+        </Button>
+      </div>
     </div>
   );
 }
@@ -624,12 +698,12 @@ function csvEscape(v: unknown): string {
   return s;
 }
 
-const CSV_COLS = ["id", "name", "category", "price", "stock", "low_stock_threshold", "image_url", "active", "description"] as const;
+const CSV_COLS = ["id", "name", "category", "price", "old_price", "stock", "low_stock_threshold", "image_url", "image_urls", "active", "description"] as const;
 
 function exportCsv(products: Product[]) {
   const rows = [CSV_COLS.join(",")];
   for (const p of products) {
-    rows.push(CSV_COLS.map((c) => csvEscape((p as any)[c])).join(","));
+    rows.push(CSV_COLS.map((c) => csvEscape(c === "image_urls" ? normalizeImageUrls(p.image_urls, p.image_url).join("|") : (p as any)[c])).join(","));
   }
   const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -672,21 +746,22 @@ function parseCsv(text: string): Record<string, string>[] {
 }
 
 // ---------- Bulk edit dialog ----------
-type BulkUpdates = Partial<Pick<Product, "category" | "price" | "stock" | "low_stock_threshold" | "active">>;
+type BulkUpdates = Partial<Pick<Product, "category" | "price" | "old_price" | "stock" | "low_stock_threshold" | "active">>;
 
 function BulkEditDialog({
   open, onOpenChange, ids, onApplied,
 }: { open: boolean; onOpenChange: (v: boolean) => void; ids: string[]; onApplied: (u: BulkUpdates) => void }) {
   const [fields, setFields] = useState({
-    category: false, price: false, stock: false, low: false, active: false,
+    category: false, price: false, oldPrice: false, stock: false, low: false, active: false,
   });
-  const [vals, setVals] = useState({ category: "", price: "0", stock: "0", low: "5", active: true });
+  const [vals, setVals] = useState({ category: "", price: "0", oldPrice: "", stock: "0", low: "5", active: true });
   const [saving, setSaving] = useState(false);
 
   async function apply() {
     const updates: BulkUpdates = {};
     if (fields.category && vals.category.trim()) updates.category = vals.category.trim();
     if (fields.price) updates.price = Number(vals.price) || 0;
+    if (fields.oldPrice) updates.old_price = Number(vals.oldPrice) || null;
     if (fields.stock) updates.stock = Number(vals.stock) || 0;
     if (fields.low) updates.low_stock_threshold = Number(vals.low) || 0;
     if (fields.active) updates.active = vals.active;
@@ -709,8 +784,11 @@ function BulkEditDialog({
           <BulkRow checked={fields.category} onCheck={(v) => setFields((f) => ({ ...f, category: v }))} label="Category">
             <Input value={vals.category} onChange={(e) => setVals((v) => ({ ...v, category: e.target.value }))} />
           </BulkRow>
-          <BulkRow checked={fields.price} onCheck={(v) => setFields((f) => ({ ...f, price: v }))} label="Price (KES)">
+          <BulkRow checked={fields.price} onCheck={(v) => setFields((f) => ({ ...f, price: v }))} label="Selling price">
             <Input type="number" min="0" value={vals.price} onChange={(e) => setVals((v) => ({ ...v, price: e.target.value }))} />
+          </BulkRow>
+          <BulkRow checked={fields.oldPrice} onCheck={(v) => setFields((f) => ({ ...f, oldPrice: v }))} label="Original price">
+            <Input type="number" min="0" value={vals.oldPrice} onChange={(e) => setVals((v) => ({ ...v, oldPrice: e.target.value }))} placeholder="Blank to clear" />
           </BulkRow>
           <BulkRow checked={fields.stock} onCheck={(v) => setFields((f) => ({ ...f, stock: v }))} label="Stock">
             <Input type="number" min="0" value={vals.stock} onChange={(e) => setVals((v) => ({ ...v, stock: e.target.value }))} />
@@ -763,14 +841,25 @@ function ImportCsvDialog({
     setBusy(true);
     let inserted = 0, updated = 0, failed = 0;
     for (const r of rows) {
+      const image_urls = normalizeImageUrls(
+        (r.image_urls || "")
+          .split("|")
+          .map((url) => url.trim())
+          .filter(Boolean),
+        (r.image_url || "").trim() || null,
+      );
+      const price = Number(r.price) || 0;
+      const old_price = Number(r.old_price) || null;
       const payload: any = {
         name: (r.name || "").trim(),
         category: (r.category || "").trim(),
         description: (r.description || "").trim() || null,
-        price: Number(r.price) || 0,
+        price,
+        old_price: old_price && old_price > price ? old_price : null,
         stock: Number(r.stock) || 0,
         low_stock_threshold: Number(r.low_stock_threshold) || 5,
-        image_url: (r.image_url || "").trim() || null,
+        image_url: image_urls[0] ?? null,
+        image_urls,
         active: r.active === undefined || r.active === "" ? true : ["true", "1", "yes", "y"].includes(r.active.toLowerCase()),
       };
       if (!payload.name || !payload.category) { failed++; continue; }
@@ -792,8 +881,8 @@ function ImportCsvDialog({
   function downloadTemplate() {
     const sample = [
       CSV_COLS.join(","),
-      `,"Sample Laptop","Laptops",75000,10,5,,true,"Optional description"`,
-      `,"Sample Phone","Phones",25000,20,5,,true,`,
+      `,"Sample Laptop","Laptops",65000,75000,10,5,https://example.com/main.jpg,https://example.com/main.jpg|https://example.com/side.jpg,true,"Optional description"`,
+      `,"Sample Phone","Phones",22000,25000,20,5,,,true,`,
     ].join("\n");
     const blob = new Blob([sample], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -814,7 +903,7 @@ function ImportCsvDialog({
           <div className="rounded-md border bg-muted/40 p-3 text-xs space-y-1.5">
             <p><strong>Quick price &amp; stock update:</strong> Click <em>Export CSV</em> first to get all your products with their IDs. Edit the <code>price</code> and <code>stock</code> columns in Excel/Sheets, save as CSV, then upload here. Rows with an <code>id</code> are <strong>updated</strong>; rows without an <code>id</code> are <strong>created</strong>.</p>
             <p className="text-muted-foreground">
-              Required for new rows: <code>name</code>, <code>category</code>. Optional: <code>price, stock, low_stock_threshold, image_url, active, description</code>.
+              Required for new rows: <code>name</code>, <code>category</code>. Optional: <code>price, old_price, stock, low_stock_threshold, image_url, image_urls, active, description</code>. Separate multiple <code>image_urls</code> with <code>|</code>.
             </p>
           </div>
           <div className="flex gap-2">
