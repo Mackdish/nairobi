@@ -20,10 +20,7 @@ export function AiChatbot() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content: "Hi! I'm Intech's AI shopping assistant. Tell me what you're looking for, your budget, or a product you want to compare.",
-    },
+    { role: "assistant", content: "Hi! I'm Intech's AI shopping assistant. Tell me what you're looking for, your budget, or a product you want to compare." },
   ]);
   const add = useCart((s) => s.add);
 
@@ -35,25 +32,21 @@ export function AiChatbot() {
     setLoading(true);
 
     try {
+      const contextProductIds = Array.from(new Set(messages.flatMap((message) => message.products?.map((product) => product.id) ?? []))).slice(-6);
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: value,
           history: messages.slice(-8).map(({ role, content }) => ({ role, content })),
+          contextProductIds,
         }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || "The assistant is unavailable right now.");
-      setMessages((current) => [
-        ...current,
-        { role: "assistant", content: data.message || "I couldn't find a useful answer. Please try another request.", products: data.products },
-      ]);
+      setMessages((current) => [...current, { role: "assistant", content: data.message || "I couldn't find a useful answer. Please try another request.", products: data.products }]);
     } catch (error) {
-      setMessages((current) => [
-        ...current,
-        { role: "assistant", content: error instanceof Error ? error.message : "Sorry, something went wrong. Please try again." },
-      ]);
+      setMessages((current) => [...current, { role: "assistant", content: error instanceof Error ? error.message : "Sorry, something went wrong. Please try again." }]);
     } finally {
       setLoading(false);
     }
@@ -74,22 +67,14 @@ export function AiChatbot() {
               <div key={`${message.role}-${index}`} className={message.role === "user" ? "flex justify-end" : "flex justify-start"}>
                 <div className={message.role === "user" ? "max-w-[85%] rounded-2xl rounded-br-sm bg-primary text-primary-foreground px-3 py-2.5 text-sm" : "max-w-[92%] rounded-2xl rounded-bl-sm bg-accent px-3 py-2.5 text-sm"}>
                   <div className="whitespace-pre-wrap leading-relaxed">{message.content}</div>
-                  {message.products?.length ? (
-                    <div className="mt-3 space-y-2">
-                      {message.products.map((product) => <ChatProductCard key={product.id} product={product} onAdd={() => { add(product as Product); toast.success("Added to cart", { description: product.name }); }} />)}
-                    </div>
-                  ) : null}
+                  {message.products?.length ? <div className="mt-3 space-y-2">{message.products.map((product) => <ChatProductCard key={product.id} product={product} onAdd={() => { add(product as Product); toast.success("Added to cart", { description: product.name }); }} />)}</div> : null}
                 </div>
               </div>
             ))}
             {loading && <div className="flex justify-start"><div className="bg-accent rounded-2xl rounded-bl-sm px-4 py-3 text-sm flex items-center gap-2"><Sparkles className="h-4 w-4 animate-pulse" /> Finding the best options…</div></div>}
           </div>
 
-          {messages.length === 1 && (
-            <div className="px-3 pb-2 flex gap-2 overflow-x-auto">
-              {starters.map((starter) => <button key={starter} onClick={() => sendMessage(starter)} className="shrink-0 text-xs border border-border rounded-full px-3 py-2 hover:bg-accent">{starter}</button>)}
-            </div>
-          )}
+          {messages.length === 1 && <div className="px-3 pb-2 flex gap-2 overflow-x-auto">{starters.map((starter) => <button key={starter} onClick={() => sendMessage(starter)} className="shrink-0 text-xs border border-border rounded-full px-3 py-2 hover:bg-accent">{starter}</button>)}</div>}
 
           <form onSubmit={(e) => { e.preventDefault(); void sendMessage(); }} className="p-3 border-t border-border flex gap-2 bg-background">
             <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about laptops, TVs, phones…" className="flex-1 min-w-0 h-11 px-3 rounded-xl border border-border bg-muted/30 outline-none focus:ring-2 focus:ring-primary/30 text-sm" />
@@ -98,9 +83,7 @@ export function AiChatbot() {
         </section>
       )}
 
-      <button onClick={() => setOpen((value) => !value)} aria-label="Open Intech AI Assistant" className="fixed z-[59] bottom-4 right-4 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-xl grid place-items-center hover:scale-105 transition-transform">
-        {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
-      </button>
+      <button onClick={() => setOpen((value) => !value)} aria-label="Open Intech AI Assistant" className="fixed z-[59] bottom-4 right-4 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-xl grid place-items-center hover:scale-105 transition-transform">{open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}</button>
     </>
   );
 }
