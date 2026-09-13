@@ -2,6 +2,7 @@ import { SiteHeader } from "./site-header";
 import { SiteFooter } from "./site-footer";
 import { Toaster } from "@/components/ui/sonner";
 import { InstallPrompt } from "./install-prompt";
+import { AiChatbot } from "./ai-chatbot";
 import type { ReactNode } from "react";
 
 export function SiteLayout({ children }: { children: ReactNode }) {
@@ -12,6 +13,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
       <SiteFooter />
       <InstallPrompt />
       <Toaster position="top-right" richColors />
+      <AiChatbot />
     </div>
   );
 }
