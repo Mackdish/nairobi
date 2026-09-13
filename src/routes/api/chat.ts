@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { env } from "cloudflare:workers";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchStorefrontProducts } from "@/lib/storefront-products";
 import type { Product } from "@/lib/catalog";
 
-const MODEL = "@cf/openai/gpt-oss-20b";
+// Use the active fast Llama variant for the production chat path. GPT-OSS remains
+// available for future tool-calling work, but this path only needs grounded text generation.
+const MODEL = "@cf/meta/llama-3.1-8b-instruct-fast";
 const MAX_HISTORY = 8;
 const MAX_PRODUCTS = 6;
 
@@ -32,8 +34,9 @@ export const Route = createFileRoute("/api/chat")({
                 .slice(-MAX_HISTORY)
             : [];
 
-          // Keep catalog retrieval deterministic and server-side. This deliberately avoids
-          // putting the chatbot on the fragile tool-call round trip while the storefront is live.
+          // Use the same catalog source as the storefront. This includes live Supabase
+          // products and the built-in catalog fallback, so the assistant never depends
+          // exclusively on an empty/incomplete database result.
           const products = await searchProductsForMessage(message);
           const catalog = products.map(toCatalogContext);
 
@@ -66,9 +69,9 @@ export const Route = createFileRoute("/api/chat")({
             return Response.json({
               message: text || fallbackMessage(message, products),
               products,
+              aiUnavailable: !text,
             });
           } catch (aiError) {
-            // A catalog result is still useful if model inference is temporarily unavailable.
             console.error("Workers AI inference error", aiError);
             return Response.json({
               message: fallbackMessage(message, products),
@@ -92,23 +95,9 @@ export const Route = createFileRoute("/api/chat")({
 async function searchProductsForMessage(message: string): Promise<Product[]> {
   const query = message.toLowerCase();
   const budget = extractBudget(query);
+  const allProducts = await fetchStorefrontProducts();
+  const products = budget === null ? allProducts : allProducts.filter((product) => product.price <= budget);
 
-  let request = supabase
-    .from("products")
-    .select("*")
-    .eq("active", true)
-    .order("created_at", { ascending: false })
-    .limit(100);
-
-  if (budget !== null) request = request.lte("price", budget);
-
-  const { data, error } = await request;
-  if (error) {
-    console.error("Supabase product search error", error);
-    return [];
-  }
-
-  const products = (data ?? []).map(mapProduct);
   const terms = tokenize(query);
   const scored = products.map((product) => {
     const haystack = [
@@ -164,26 +153,6 @@ function toCatalogContext(product: Product) {
     description: product.description,
     specs: product.specs,
   };
-}
-
-function mapProduct(row: any): Product {
-  return {
-    id: row.id,
-    name: row.name,
-    category: row.category,
-    price: Number(row.price) || 0,
-    oldPrice: row.old_price == null ? undefined : Number(row.old_price),
-    imageUrl: row.image_url ?? undefined,
-    imageUrls: Array.isArray(row.image_urls) ? row.image_urls : undefined,
-    stock: Number(row.stock) || 0,
-    description: row.description ?? "",
-    brand: row.brand ?? "Intech",
-    rating: Number(row.rating) || 0,
-    reviews: Number(row.reviews) || 0,
-    specs: row.specs ?? {},
-    image: row.image ?? "📦",
-    bg: row.bg ?? "bg-muted",
-  } as Product;
 }
 
 function fallbackMessage(message: string, products: Product[]) {
