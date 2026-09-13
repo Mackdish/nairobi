@@ -53,9 +53,9 @@ async function searchProducts(query: string): Promise<Product[]> {
 }
 
 function extractBudget(text: string): number | null {
-  const match = text.match(/(?:under|below|less than|max|budget(?: of)?|around|about)?\s*(?:ksh|kes|k\.?sh\.?)?\s*(\d+(?:\.\d+)?)\s*(k|kilo|thousand)?/i);
+  const match = text.match(/(?:under|below|less than|max|budget(?: of)?|around|about)?\s*(?:ksh|kes|k\.?sh\.?)?\s*(\d[\d,]*(?:\.\d+)?)\s*(k|kilo|thousand)?/i);
   if (!match) return null;
-  let amount = Number(match[1]);
+  let amount = Number(match[1].replace(/,/g, ""));
   if (!Number.isFinite(amount)) return null;
   if (match[2]) amount *= 1000;
   return amount >= 1000 ? amount : null;
