@@ -10,8 +10,8 @@ const MAX_TOOL_ROUNDS = 3;
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 type WorkersAi = { run: (model: string, input: Record<string, unknown>) => Promise<any> };
-type ToolCall = { id?: string; name?: string; function?: { name?: string; arguments?: unknown }; arguments?: unknown };
-type AiMessage = { role: string; content?: string | null; tool_calls?: ToolCall[]; tool_call_id?: string; name?: string };
+type ToolCall = { name?: string; arguments?: unknown; function?: { name?: string; arguments?: unknown } };
+type AiMessage = { role: string; content?: string | null };
 
 type SearchArgs = {
   query?: string;
@@ -109,19 +109,14 @@ export const Route = createFileRoute("/api/chat")({
             const toolCalls: ToolCall[] = Array.isArray(response?.tool_calls) ? response.tool_calls : [];
             if (!toolCalls.length) break;
 
-            const assistantMessage: AiMessage = {
-              role: "assistant",
-              content: response?.response ?? null,
-              tool_calls: toolCalls,
-            };
-            messages.push(assistantMessage);
-
-            for (let index = 0; index < toolCalls.length; index += 1) {
-              const call = toolCalls[index];
+            // Workers AI traditional function calling returns { name, arguments }.
+            // For the next inference round, use Cloudflare's documented traditional
+            // format: an assistant message containing the selected tool JSON followed
+            // by a role=tool message containing the function result.
+            for (const call of toolCalls) {
               const name = call?.function?.name ?? call?.name ?? "";
               const rawArgs = call?.function?.arguments ?? call?.arguments ?? {};
               const args = parseArguments(rawArgs);
-              const toolCallId = String(call?.id ?? `intech-tool-${round}-${index}`);
               let result: unknown;
 
               try {
@@ -146,7 +141,8 @@ export const Route = createFileRoute("/api/chat")({
                 result = { error: "The catalog lookup failed. Please try again." };
               }
 
-              messages.push({ role: "tool", tool_call_id: toolCallId, name, content: JSON.stringify(result) });
+              messages.push({ role: "assistant", content: JSON.stringify({ name, arguments: args }) });
+              messages.push({ role: "tool", content: JSON.stringify(result) });
             }
           }
 
