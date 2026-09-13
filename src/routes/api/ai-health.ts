@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { env } from "cloudflare:workers";
 
-const MODEL = "@cf/openai/gpt-oss-20b";
+const MODEL = "@cf/meta/llama-3.1-8b-instruct-fast";
 type WorkersAi = { run: (model: string, input: Record<string, unknown>) => Promise<any> };
 
 export const Route = createFileRoute("/api/ai-health")({
@@ -11,7 +11,7 @@ export const Route = createFileRoute("/api/ai-health")({
         const ai = (env as unknown as { AI?: WorkersAi }).AI;
         const url = new URL(request.url);
         if (url.searchParams.get("deep") !== "1") {
-          return Response.json({ ok: true, service: "intech-ai", aiBinding: Boolean(ai) });
+          return Response.json({ ok: true, service: "intech-ai", aiBinding: Boolean(ai), model: MODEL });
         }
 
         if (!ai) {
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/api/ai-health")({
               { role: "system", content: "Reply with exactly INTECH_AI_OK." },
               { role: "user", content: "Health check" },
             ],
-            max_tokens: 16,
+            max_tokens: 64,
             temperature: 0,
           });
 
@@ -33,6 +33,8 @@ export const Route = createFileRoute("/api/ai-health")({
             service: "intech-ai",
             model: MODEL,
             response: typeof response?.response === "string" ? response.response : null,
+            responseType: typeof response,
+            keys: response && typeof response === "object" ? Object.keys(response) : [],
           });
         } catch (error) {
           console.error("Workers AI health check failed", error);
