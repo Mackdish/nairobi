@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Phone, Mail, MapPin } from "lucide-react";
 import { CATEGORIES } from "@/lib/catalog";
+import { NewsletterSignup } from "@/components/newsletter-signup";
 import { SocialLinks } from "@/components/social-links";
 
 export function SiteFooter() {
@@ -51,7 +52,7 @@ export function SiteFooter() {
           <ul className="space-y-3 text-sm">
             <li className="flex items-start gap-2">
               <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-primary-glow" />
-              <span>  World Business Center 3rd floor, Nairobi, Kenya</span>
+              <span>World Business Center 3rd floor, Nairobi, Kenya</span>
             </li>
             <li className="flex items-center gap-2">
               <Phone className="h-4 w-4 text-primary-glow" />
@@ -64,6 +65,7 @@ export function SiteFooter() {
               </a>
             </li>
           </ul>
+
           <div className="mt-5">
             <div className="text-xs uppercase tracking-wide text-white/60 mb-2">We Accept</div>
             <div className="flex flex-wrap gap-2">
@@ -74,6 +76,8 @@ export function SiteFooter() {
               ))}
             </div>
           </div>
+
+          <NewsletterSignup />
         </div>
       </div>
       <div className="border-t border-white/10">
