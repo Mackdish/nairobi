@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Mail, Loader2 } from "lucide-react";
 
 export function NewsletterSignup() {
