@@ -37,6 +37,7 @@ export function SiteFooter() {
         <div>
           <h4 className="text-white font-semibold mb-3 text-sm uppercase tracking-wide">Customer Care</h4>
           <ul className="space-y-2 text-sm">
+            <li><Link to="/blog" className="hover:text-primary-glow">Blog & Buying Guides</Link></li>
             <li><Link to="/help" className="hover:text-primary-glow">Help Center</Link></li>
             <li><Link to="/track-order" className="hover:text-primary-glow">Track Your Order</Link></li>
             <li><Link to="/returns" className="hover:text-primary-glow">Returns & Refunds</Link></li>
