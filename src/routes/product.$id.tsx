@@ -33,6 +33,8 @@ export const Route = createFileRoute("/product/$id")({
   }),
   notFoundComponent: () => (
     <SiteLayout>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <div className="container mx-auto px-4 py-20 text-center">
         <h1 className="text-3xl font-bold">Product not found</h1>
         <Link to="/" className="text-primary hover:underline mt-3 inline-block">← Back to home</Link>
@@ -53,6 +55,38 @@ function ProductPage() {
   const gallery = product.imageUrls?.length ? product.imageUrls : product.imageUrl ? [product.imageUrl] : [];
   const fallbackGallery = gallery.length ? gallery : [product.image, "ðŸ“¦", "âœ¨", "ðŸ›¡ï¸"];
   const [selectedImage, setSelectedImage] = useState(fallbackGallery[0]);
+
+  const productUrl = `https://intechcomputershop.co.ke/product/${product.id}`;
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    image: gallery.filter((url): url is string => typeof url === "string" && url.startsWith("http")),
+    sku: product.id,
+    brand: { "@type": "Brand", name: product.brand },
+    offers: {
+      "@type": "Offer",
+      url: productUrl,
+      priceCurrency: "KES",
+      price: product.price,
+      availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      itemCondition: /refurbished|used/i.test(product.name) ? "https://schema.org/UsedCondition" : "https://schema.org/NewCondition",
+      seller: { "@id": "https://intechcomputershop.co.ke/#business" },
+    },
+    ...(product.reviews > 0 && product.rating > 0
+      ? { aggregateRating: { "@type": "AggregateRating", ratingValue: product.rating, reviewCount: product.reviews, bestRating: 5, worstRating: 1 } }
+      : {}),
+  };
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://intechcomputershop.co.ke/" },
+      ...(cat ? [{ "@type": "ListItem", position: 2, name: cat.name, item: `https://intechcomputershop.co.ke/category/${cat.slug}` }] : []),
+      { "@type": "ListItem", position: cat ? 3 : 2, name: product.name, item: productUrl },
+    ],
+  };
 
   return (
     <SiteLayout>
