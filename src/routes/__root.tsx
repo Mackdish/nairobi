@@ -54,7 +54,6 @@ export const Route = createRootRoute({
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon.ico" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
-      { rel: "canonical", href: "https://intechcomputershop.co.ke/" },
     ],
   }),
   shellComponent: RootShell,
