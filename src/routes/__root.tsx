@@ -68,6 +68,29 @@ function RootShell({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": ["ComputerStore", "OnlineStore"],
+              "@id": "https://intechcomputershop.co.ke/#business",
+              name: "Intech Computer Shop",
+              url: "https://intechcomputershop.co.ke/",
+              telephone: "+254728394362",
+              email: "info@intechcomputershop.co.ke",
+              description: "Computer and electronics shop in Nairobi, Kenya, selling laptops, desktops, accessories and electronics with Nairobi delivery and nationwide shipping.",
+              address: {
+                "@type": "PostalAddress",
+                streetAddress: "World Business Center, 3rd Floor",
+                addressLocality: "Nairobi",
+                addressCountry: "KE",
+              },
+              areaServed: { "@type": "Country", name: "Kenya" },
+              priceRange: "KES",
+            }),
+          }}
+        />
         {children}
         <Scripts />
       </body>
