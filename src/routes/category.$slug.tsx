@@ -64,8 +64,19 @@ function CategoryPage() {
   const toggleBrand = (b: string) =>
     setActiveBrands((prev) => (prev.includes(b) ? prev.filter((x) => x !== b) : [...prev, b]));
 
+  const canonicalUrl = `https://intechcomputershop.co.ke/category/${cat.slug}`;
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://intechcomputershop.co.ke/" },
+      { "@type": "ListItem", position: 2, name: cat.name, item: canonicalUrl },
+    ],
+  };
+
   return (
     <SiteLayout>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       {/* Breadcrumb */}
       <div className="container mx-auto px-4 mt-4 text-xs sm:text-sm text-muted-foreground flex items-center gap-1 flex-wrap">
         <Link to="/" className="hover:text-primary">Home</Link>
