@@ -11,7 +11,20 @@ type BlogPost = {
   created_at: string; updated_at: string;
 };
 
-export const Route = createFileRoute("/blog")({ component: BlogPage });
+export const Route = createFileRoute("/blog")({
+  head: () => ({
+    meta: [
+      { title: "Technology & Computer Buying Guides in Kenya | Intech Blog" },
+      { name: "description", content: "Laptop buying guides, computer tips, technology advice and product insights for Nairobi and customers across Kenya." },
+      { property: "og:title", content: "Technology & Computer Buying Guides | Intech Blog" },
+      { property: "og:description", content: "Practical technology, laptop and computer buying guides from Intech Computer Shop in Nairobi." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://intechcomputershop.co.ke/blog" },
+    ],
+    links: [{ rel: "canonical", href: "https://intechcomputershop.co.ke/blog" }],
+  }),
+  component: BlogPage,
+});
 
 function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
