@@ -141,6 +141,7 @@ export function SiteHeader() {
       <nav className="bg-white border-b border-border hidden lg:block">
         <div className="container mx-auto px-4">
           <ul className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+            <li><Link to="/blog" className="block px-3 py-2.5 text-xs font-semibold text-primary whitespace-nowrap border-b-2 border-transparent hover:border-primary transition-colors">Blog</Link></li>
             {CATEGORIES.slice(0, 11).map((c) => (
               <li key={c.slug}>
                 <Link
@@ -168,6 +169,7 @@ function MobileNav() {
         <div className="text-xs opacity-90">Browse all categories</div>
       </div>
       <ul className="flex-1 overflow-y-auto py-2">
+        <li><Link to="/blog" className="block px-4 py-3 text-sm font-semibold text-primary hover:bg-accent border-b border-border/50">Blog &amp; Buying Guides</Link></li>
         {CATEGORIES.map((c) => (
           <li key={c.slug}>
             <Link
