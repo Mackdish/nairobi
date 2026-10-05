@@ -21,7 +21,7 @@ export const Route = createFileRoute("/")({
   }),
   head: () => ({
     links: [{ rel: "canonical", href: "https://intechcomputershop.co.ke/" }],
-    meta: [ [
+    meta: [
       { title: "Laptops & Computers in Nairobi, Kenya | Intech Computer Shop" },
       {
         name: "description",
