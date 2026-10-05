@@ -123,24 +123,58 @@ function buildCatalogDescription(
   category: string,
   specs?: Record<string, string>,
 ) {
-  const condition = /refurbished|used/i.test(name) ? "refurbished" : "new";
-  const details = specs
+  const cleanName = name
+    .replace(/[{}()[\]]/g, " ")
+    .replace(/^(?:\s*\([^)]*(?:offer|mouse|promotion|hot)[^)]*\)\s*)+/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const lower = cleanName.toLowerCase();
+  const condition = /refurbished|used/i.test(lower) ? "refurbished" : "new";
+  const specDetails = specs
     ? Object.entries(specs)
+        .filter(([, value]) => value && value !== "undefined")
         .map(([key, value]) => `${key}: ${value}`)
         .join(", ")
     : "";
+
   if (category === "laptops-desktops") {
-    const useCase = /gaming|legion/i.test(name)
-      ? "gaming and demanding applications"
-      : /thinkpad|elitebook|probook|latitude/i.test(name)
-        ? "business, office and professional work"
-        : /yoga|x360|touchscreen/i.test(name)
+    const type = /server|poweredge/i.test(lower)
+      ? "server"
+      : /all[- ]?in[- ]?one|desktop/i.test(lower)
+        ? "desktop computer"
+        : "laptop";
+    const useCase = /gaming|legion|rtx/i.test(lower)
+      ? "gaming, creative work and demanding applications"
+      : /thinkpad|elitebook|probook|latitude/i.test(lower)
+        ? "business, office and professional workloads"
+        : /yoga|x360|touchscreen/i.test(lower)
           ? "study, mobility and everyday productivity"
-          : "work, study and everyday computing";
-    return `${name} is a ${condition} ${brand} computer suited to ${useCase}. ${details ? `Key specifications: ${details}. ` : ""}Available from Intech Computer Shop in Nairobi with delivery across Kenya.`;
+          : "work, study, browsing and everyday computing";
+
+    return `${cleanName} is a ${condition} ${brand} ${type} suited to ${useCase}. ${specDetails ? `Key specifications include ${specDetails}. ` : ""}Shop this ${brand} ${type} from Intech Computer Shop in Nairobi, Kenya, with delivery available across Kenya.`;
   }
-  return `${name} from ${brand} is a practical technology product for everyday use. ${details ? `Key specifications: ${details}. ` : ""}Shop at Intech Computer Shop in Nairobi with nationwide delivery.`;
+
+  const categoryCopy: Record<string, string> = {
+    tvs: "for home entertainment, streaming and everyday viewing",
+    "phones-tablets": "for communication, entertainment, study and mobile productivity",
+    "computer-accessories": "for improving computer setups, connectivity and everyday productivity",
+    "data-storage": "for file storage, backups and data transfer",
+    printers: "for home, school, office and small-business printing",
+    "cctv-networking": "for connectivity, networking and security applications",
+    "scanners-projectors": "for presentations, teaching, meetings and office workflows",
+    gaming: "for gaming and entertainment setups",
+    "antivirus-software": "for device and digital security",
+    audio: "for calls, music and everyday entertainment",
+    ups: "for power backup and protection of compatible electronics",
+    ac: "for comfortable indoor cooling",
+    fridges: "for practical food and beverage storage",
+  };
+
+  const purpose = categoryCopy[category] ?? "for reliable everyday technology use";
+  return `${cleanName} is a ${condition} ${brand} product designed ${purpose}. ${specDetails ? `Key specifications include ${specDetails}. ` : ""}Shop at Intech Computer Shop in Nairobi, Kenya, with nationwide delivery and customer support.`;
 }
+
 
 // Visual placeholder approach: each product gets a colored tile + emoji mark.
 // Generates a clean grid look without needing dozens of generated images.
