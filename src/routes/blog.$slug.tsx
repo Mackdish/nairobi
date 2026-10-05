@@ -12,6 +12,13 @@ type BlogPost = {
 };
 
 export const Route = createFileRoute("/blog/$slug")({
+  head: () => ({
+    meta: [
+      { title: "Blog Article | Intech Computer Shop" },
+      { name: "description", content: "Technology and computer buying advice from Intech Computer Shop in Nairobi, Kenya." },
+      { property: "og:type", content: "article" },
+    ],
+  }),
   component: BlogArticlePage,
 });
 
