@@ -117,6 +117,31 @@ export type Product = {
   imageUrls?: string[]; // optional gallery images; first image is used as primary visual
 };
 
+function buildCatalogDescription(
+  name: string,
+  brand: string,
+  category: string,
+  specs?: Record<string, string>,
+) {
+  const condition = /refurbished|used/i.test(name) ? "refurbished" : "new";
+  const details = specs
+    ? Object.entries(specs)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join(", ")
+    : "";
+  if (category === "laptops-desktops") {
+    const useCase = /gaming|legion/i.test(name)
+      ? "gaming and demanding applications"
+      : /thinkpad|elitebook|probook|latitude/i.test(name)
+        ? "business, office and professional work"
+        : /yoga|x360|touchscreen/i.test(name)
+          ? "study, mobility and everyday productivity"
+          : "work, study and everyday computing";
+    return `${name} is a ${condition} ${brand} computer suited to ${useCase}. ${details ? `Key specifications: ${details}. ` : ""}Available from Intech Computer Shop in Nairobi with delivery across Kenya.`;
+  }
+  return `${name} from ${brand} is a practical technology product for everyday use. ${details ? `Key specifications: ${details}. ` : ""}Shop at Intech Computer Shop in Nairobi with nationwide delivery.`;
+}
+
 // Visual placeholder approach: each product gets a colored tile + emoji mark.
 // Generates a clean grid look without needing dozens of generated images.
 function p(
@@ -150,10 +175,7 @@ function p(
     stock,
     badge,
     specs,
-    description:
-      "Premium grade " +
-      name +
-      " — backed by Intech Computer Shop's 1-year warranty, free Nairobi delivery, and nationwide courier shipping.",
+    description: buildCatalogDescription(name, brand, category, specs),
   };
 }
 
