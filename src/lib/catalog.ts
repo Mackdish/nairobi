@@ -117,18 +117,25 @@ export type Product = {
   imageUrls?: string[]; // optional gallery images; first image is used as primary visual
 };
 
+function normalizeProductName(name: string) {
+  return name
+    .replace(/[{}()[\]]/g, " ")
+    .replace(/^(?:\s*\([^)]*(?:offer|mouse|promotion|hot)[^)]*\)\s*)+/i, "")
+    .replace(/^\s*\{[^}]*\}\s*/i, "")
+    .replace(/\s+/g, " ")
+    .replace(/\s*[|]+\s*$/g, "")
+    .trim()
+    .replace(/\b(refur|refurbis)$/i, "Refurbished")
+    .replace(/\s{2,}/g, " ");
+}
+
 function buildCatalogDescription(
   name: string,
   brand: string,
   category: string,
   specs?: Record<string, string>,
 ) {
-  const cleanName = name
-    .replace(/[{}()[\]]/g, " ")
-    .replace(/^(?:\s*\([^)]*(?:offer|mouse|promotion|hot)[^)]*\)\s*)+/i, "")
-    .replace(/\s+/g, " ")
-    .trim();
-
+  const cleanName = normalizeProductName(name);
   const lower = cleanName.toLowerCase();
   const condition = /refurbished|used/i.test(lower) ? "refurbished" : "new";
   const specDetails = specs
@@ -174,7 +181,6 @@ function buildCatalogDescription(
   const purpose = categoryCopy[category] ?? "for reliable everyday technology use";
   return `${cleanName} is a ${condition} ${brand} product designed ${purpose}. ${specDetails ? `Key specifications include ${specDetails}. ` : ""}Shop at Intech Computer Shop in Nairobi, Kenya, with nationwide delivery and customer support.`;
 }
-
 
 // Visual placeholder approach: each product gets a colored tile + emoji mark.
 // Generates a clean grid look without needing dozens of generated images.
