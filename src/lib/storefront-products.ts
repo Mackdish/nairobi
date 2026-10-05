@@ -91,51 +91,57 @@ function buildProductDescription(name: string, brand: string, category: string, 
   const cleanName = name
     .replace(/[{}()[\]]/g, " ")
     .replace(/\s+/g, " ")
-    .replace(/^(promotion|special offer|limited hot offers|free mouse|hot offers)\s*[:!-]?\s*/i, "")
+    .replace(/^(promotion|special offer|limited hot offers|free mouse|hot offers|limited hot best offers)\s*[:!-]?\s*/i, "")
+    .replace(/^(?:\s*\([^)]*(?:offer|mouse|promotion|hot)[^)]*\)\s*)+/i, "")
     .trim();
 
   const lower = cleanName.toLowerCase();
   const condition = /refurbished|renewed|used/i.test(lower) ? "refurbished" : "new";
-  const cpu = cleanName.match(/(?:core\s+)?i[3579](?:\s+\d+(?:st|nd|rd|th)?\s*gen)?/i)?.[0];
-  const ram = cleanName.match(/\b\d+\s*GB\s*(?:RAM)?\b/i)?.[0];
+  const cpu = cleanName.match(/(?:intel\s+)?(?:core\s+)?i[3579](?:\s+\d+(?:st|nd|rd|th)?\s*gen)?/i)?.[0]
+    ?? cleanName.match(/(?:ryzen\s+[3579](?:\s+\d+)?|celeron|pentium|amd\s+a\d+|core\s+i[3579])/i)?.[0];
+  const ram = cleanName.match(/\b\d+\s*GB(?:\s+RAM)?\b/i)?.[0];
   const storage = cleanName.match(/\b\d+\s*(?:GB|TB)\s*(?:SSD|HDD)\b/i)?.[0];
-  const screen = cleanName.match(/\b\d+(?:\.\d+)?["”]?\s*(?:inch(?:es)?)?\b/i)?.[0];
-  const details = [cpu, ram, storage, screen].filter(Boolean).join(", ");
+  const screen = cleanName.match(/\b\d+(?:\.\d+)?\s*(?:["”]|inch(?:es)?)\b/i)?.[0];
+  const specs = [cpu, ram, storage, screen].filter(Boolean);
+  const specSentence = specs.length ? ` Key specifications include ${specs.join(", ")}.` : "";
 
-  if (sourceDescription && !/^(premium|genuine)\s+/i.test(sourceDescription.trim())) {
-    return sourceDescription.trim();
-  }
-
-  const location = "Intech Computer Shop in Nairobi, Kenya";
   if (category === "laptops-desktops") {
-    const useCase = /gaming|legion|rtx|playstation/i.test(lower)
-      ? "gaming and demanding applications"
-      : /thinkpad|elitebook|probook|latitude|lifebook/i.test(lower)
-        ? "business, office and professional work"
+    const type = /server|poweredge/i.test(lower)
+      ? "server"
+      : /all[- ]?in[- ]?one|desktop/i.test(lower)
+        ? "desktop computer"
+        : "laptop";
+    const useCase = /gaming|legion|rtx|geforce/i.test(lower)
+      ? "gaming, creative work and demanding applications"
+      : /thinkpad|elitebook|probook|latitude|lifebook|poweredge/i.test(lower)
+        ? "business, office and professional workloads"
         : /yoga|x360|touchscreen|2-in-1/i.test(lower)
-          ? "study, mobility and everyday productivity"
-          : "work, study and everyday computing";
-    return `${cleanName} is a ${condition} ${brand} computer designed for ${useCase}. ${details ? `Key specifications include ${details}. ` : ""}Buy from ${location} with Nairobi delivery and nationwide shipping.`;
+          ? "students, mobile professionals and everyday productivity"
+          : "work, study, browsing and everyday computing";
+
+    return `${cleanName} is a ${condition} ${brand} ${type} designed for ${useCase}. ${specSentence} It is a practical choice for customers looking for ${brand} ${type}s in Nairobi, Kenya, with a focus on value and dependable everyday performance. Shop ${cleanName} from Intech Computer Shop with delivery in Nairobi and across Kenya.`;
   }
 
   const categoryCopy: Record<string, string> = {
-    tvs: "Enjoy home entertainment with a practical display solution for streaming, TV and everyday viewing.",
-    "phones-tablets": "A practical mobile device for communication, entertainment, study and everyday productivity.",
-    "computer-accessories": "A useful computer accessory for improving your everyday workstation setup and productivity.",
-    "data-storage": "A practical storage solution for backing up, transferring and managing your files.",
-    printers: "A practical printing solution for home, school and office use.",
-    "cctv-networking": "A reliable networking and security solution for home, office and business environments.",
-    "scanners-projectors": "A practical solution for presentations, teaching, meetings and office workflows.",
-    gaming: "Built for an engaging gaming and entertainment setup.",
-    "antivirus-software": "Security software designed to help protect your devices and digital files.",
-    audio: "A convenient audio accessory for calls, music and everyday entertainment.",
-    ups: "Power protection equipment designed to help keep compatible electronics running during power interruptions.",
-    ac: "A practical cooling solution for comfortable indoor spaces.",
-    fridges: "A practical home appliance for reliable food and beverage storage.",
+    tvs: `is a ${condition} ${brand} TV designed for home entertainment, streaming and everyday viewing`,
+    "phones-tablets": `is a ${condition} ${brand} mobile device for communication, entertainment, study and everyday productivity`,
+    "computer-accessories": `is a ${condition} ${brand} computer accessory designed to improve your workstation, connectivity or daily productivity`,
+    "data-storage": `is a ${condition} ${brand} storage product for backing up, transferring and managing important files and digital content`,
+    printers: `is a ${condition} ${brand} printing solution suitable for home, school, office and small-business use`,
+    "cctv-networking": `is a ${condition} ${brand} networking or security product designed for reliable connectivity and protection in homes, offices and businesses`,
+    "scanners-projectors": `is a ${condition} ${brand} imaging solution suitable for presentations, teaching, meetings, scanning and office workflows`,
+    gaming: `is a ${condition} ${brand} gaming product designed to enhance gaming and entertainment setups`,
+    "antivirus-software": `is a ${condition} ${brand} software solution designed to help protect devices, files and everyday digital activity`,
+    audio: `is a ${condition} ${brand} audio product designed for calls, music and everyday entertainment`,
+    ups: `is a ${condition} ${brand} power-backup product designed to help protect compatible electronics during power interruptions`,
+    ac: `is a ${condition} ${brand} air conditioner designed to provide comfortable indoor cooling`,
+    fridges: `is a ${condition} ${brand} refrigerator designed for practical food and beverage storage at home or in business`,
   };
 
-  return `${cleanName} from ${brand} is ${categoryCopy[category] ?? "a practical technology product for everyday use."} ${details ? `Key details: ${details}. ` : ""}Available at ${location} with Nairobi delivery and nationwide shipping.`;
+  const sentence = categoryCopy[category] ?? `is a ${condition} ${brand} technology product designed for reliable everyday use`;
+  return `${cleanName} ${sentence}. ${specSentence} Find ${brand} products and technology solutions at Intech Computer Shop in Nairobi, Kenya, with delivery available across Kenya. Order online or contact our team for product availability and support.`;
 }
+
 
 function capitalizeSlug(value: string) {
   return value
