@@ -34,7 +34,7 @@ export const Route = createFileRoute("/product/$id")({
       { property: "og:description", content: `${loaderData?.product.name} — ${KES(loaderData?.product.price ?? 0)}` },
       ...(loaderData?.product ? [{ property: "og:url", content: `https://intechcomputershop.co.ke/product/${loaderData.product.id}` }] : []),
     ],
-  })
+  }),
   notFoundComponent: () => (
     <SiteLayout>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} />
