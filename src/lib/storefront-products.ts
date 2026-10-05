@@ -87,13 +87,20 @@ function getBrandFromName(name: string) {
   return token.replace(/[^a-z0-9&.-]/gi, "");
 }
 
-function buildProductDescription(name: string, brand: string, category: string, sourceDescription?: string | null) {
-  const cleanName = name
+function normalizeProductName(name: string) {
+  return name
     .replace(/[{}()[\]]/g, " ")
-    .replace(/\s+/g, " ")
-    .replace(/^(promotion|special offer|limited hot offers|free mouse|hot offers|limited hot best offers)\s*[:!-]?\s*/i, "")
     .replace(/^(?:\s*\([^)]*(?:offer|mouse|promotion|hot)[^)]*\)\s*)+/i, "")
-    .trim();
+    .replace(/^\s*\{[^}]*\}\s*/i, "")
+    .replace(/\s+/g, " ")
+    .replace(/\s*[|]+\s*$/g, "")
+    .trim()
+    .replace(/\b(refur|refurbis)$/i, "Refurbished")
+    .replace(/\s{2,}/g, " ");
+}
+
+function buildProductDescription(name: string, brand: string, category: string, sourceDescription?: string | null) {
+  const cleanName = normalizeProductName(name);
 
   const lower = cleanName.toLowerCase();
   const condition = /refurbished|renewed|used/i.test(lower) ? "refurbished" : "new";
@@ -162,7 +169,7 @@ export function mapDatabaseProduct(row: ProductRow): Product {
 
   return {
     id: row.id,
-    name: row.name,
+    name: normalizeProductName(row.name),
     brand,
     category,
     price: Number(row.price ?? 0),
