@@ -21,16 +21,20 @@ export const Route = createFileRoute("/product/$id")({
     };
   },
   head: ({ loaderData }) => ({
+    links: loaderData?.product
+      ? [{ rel: "canonical", href: `https://intechcomputershop.co.ke/product/${loaderData.product.id}` }]
+      : [],
     meta: [
       { title: `${loaderData?.product.name ?? "Product"} — Intech Computer Shop` },
       {
         name: "description",
-        content: loaderData?.product.description ?? "Shop electronics at Intech Computer Shop in Kenya.",
+        content: loaderData?.product.description ?? "Shop genuine computers and electronics at Intech Computer Shop in Nairobi, Kenya.",
       },
       { property: "og:title", content: loaderData?.product.name ?? "Intech product" },
       { property: "og:description", content: `${loaderData?.product.name} — ${KES(loaderData?.product.price ?? 0)}` },
+      ...(loaderData?.product ? [{ property: "og:url", content: `https://intechcomputershop.co.ke/product/${loaderData.product.id}` }] : []),
     ],
-  }),
+  })
   notFoundComponent: () => (
     <SiteLayout>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} />
