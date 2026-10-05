@@ -25,7 +25,7 @@ export const Route = createFileRoute("/category/$slug")({
       },
       ...(loaderData?.cat ? [{ property: "og:url", content: `https://intechcomputershop.co.ke/category/${loaderData.cat.slug}` }] : []),
     ],
-  })
+  }),
   component: CategoryPage,
   notFoundComponent: () => (
     <SiteLayout>
