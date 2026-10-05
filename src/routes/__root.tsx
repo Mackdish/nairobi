@@ -39,7 +39,6 @@ export const Route = createRootRoute({
       { property: "og:description", content: "Buy genuine laptops, smart TVs, phones, printers, networking & electronics in Kenya. Free Nairobi delivery, M-Pesa payments." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@IntechComputerShop" },
       { name: "twitter:title", content: "Intech Computer Shop — Laptops, TVs & Electronics in Kenya" },
       { name: "twitter:description", content: "Buy genuine laptops, smart TVs, phones, printers, networking & electronics in Kenya. Free Nairobi delivery, M-Pesa payments." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/676723e5-f5a6-4367-9987-feab6f279315/id-preview-75ac8dfd--ecb0be3e-3b32-4a9e-9e36-33ee2a225f65.lovable.app-1777489747793.png" },
