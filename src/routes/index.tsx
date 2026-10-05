@@ -22,17 +22,17 @@ export const Route = createFileRoute("/")({
   head: () => ({
     links: [{ rel: "canonical", href: "https://intechcomputershop.co.ke/" }],
     meta: [ [
-      { title: "Intech Computer Shop — Laptops, TVs & Electronics in Kenya" },
+      { title: "Laptops & Computers in Nairobi, Kenya | Intech Computer Shop" },
       {
         name: "description",
         content:
-          "Shop laptops, smart TVs, phones, printers, networking & electronics in Kenya. Free Nairobi delivery and M-Pesa checkout.",
+          "Buy HP, Lenovo, Dell and refurbished laptops in Nairobi. Genuine computers, accessories and IT equipment with warranty, M-Pesa and Nairobi delivery.",
       },
-      { property: "og:title", content: "Intech Computer Shop" },
+      { property: "og:title", content: "Laptops & Computers in Nairobi | Intech Computer Shop" },
       {
         property: "og:description",
         content:
-          "Kenya's trusted electronics retailer — laptops, TVs, phones, accessories & more.",
+          "Buy genuine HP, Lenovo and Dell laptops in Nairobi with warranty, M-Pesa and delivery.",
       },
     ],
   }),
