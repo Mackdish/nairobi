@@ -14,14 +14,18 @@ export const Route = createFileRoute("/category/$slug")({
     return { cat, products: await fetchStorefrontProducts() };
   },
   head: ({ loaderData }) => ({
+    links: loaderData?.cat
+      ? [{ rel: "canonical", href: `https://intechcomputershop.co.ke/category/${loaderData.cat.slug}` }]
+      : [],
     meta: [
       { title: `${loaderData?.cat.name ?? "Category"} — Intech Computer Shop` },
       {
         name: "description",
         content: `Shop ${loaderData?.cat.name ?? "products"} at Intech Computer Shop in Kenya. Genuine products, M-Pesa payments, nationwide delivery.`,
       },
+      ...(loaderData?.cat ? [{ property: "og:url", content: `https://intechcomputershop.co.ke/category/${loaderData.cat.slug}` }] : []),
     ],
-  }),
+  })
   component: CategoryPage,
   notFoundComponent: () => (
     <SiteLayout>
