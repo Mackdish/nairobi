@@ -5,6 +5,7 @@ const RESEND_CONTACTS_URL = "https://api.resend.com/contacts";
 const RESEND_EMAILS_URL = "https://api.resend.com/emails";
 const MAX_EMAIL_LENGTH = 254;
 const MAX_NAME_LENGTH = 80;
+const DEFAULT_FROM_EMAIL = "Intech Computer Shop <info@intechcomputershop.co.ke>";
 
 type NewsletterBody = {
   email?: unknown;
@@ -61,7 +62,7 @@ export const Route = createFileRoute("/api/newsletter")({
           }
 
           let welcomeSent = false;
-          const fromEmail = getEnv("RESEND_FROM_EMAIL");
+          const fromEmail = getEnv("RESEND_FROM_EMAIL") || DEFAULT_FROM_EMAIL;
 
           // Only send a welcome email for a newly-created contact. Existing contacts
           // can still receive future broadcasts from Resend without duplicate welcomes.
@@ -135,7 +136,12 @@ async function resendRequest<T>(url: string, apiKey: string, method: "POST", bod
 
 function isDuplicateContact(data: ResendResponse) {
   const message = `${data?.message ?? ""} ${data?.name ?? ""}`.toLowerCase();
-  return message.includes("already") || message.includes("exist") || message.includes("duplicate");
+  return (
+    message.includes("already") ||
+    message.includes("exist") ||
+    message.includes("duplicate") ||
+    message.includes("contact with this email")
+  );
 }
 
 function escapeHtml(value: string) {
