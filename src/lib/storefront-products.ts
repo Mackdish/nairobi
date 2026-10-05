@@ -87,6 +87,56 @@ function getBrandFromName(name: string) {
   return token.replace(/[^a-z0-9&.-]/gi, "");
 }
 
+function buildProductDescription(name: string, brand: string, category: string, sourceDescription?: string | null) {
+  const cleanName = name
+    .replace(/[{}()[\]]/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/^(promotion|special offer|limited hot offers|free mouse|hot offers)\s*[:!-]?\s*/i, "")
+    .trim();
+
+  const lower = cleanName.toLowerCase();
+  const condition = /refurbished|renewed|used/i.test(lower) ? "refurbished" : "new";
+  const cpu = cleanName.match(/(?:core\s+)?i[3579](?:\s+\d+(?:st|nd|rd|th)?\s*gen)?/i)?.[0];
+  const ram = cleanName.match(/\b\d+\s*GB\s*(?:RAM)?\b/i)?.[0];
+  const storage = cleanName.match(/\b\d+\s*(?:GB|TB)\s*(?:SSD|HDD)\b/i)?.[0];
+  const screen = cleanName.match(/\b\d+(?:\.\d+)?["”]?\s*(?:inch(?:es)?)?\b/i)?.[0];
+  const details = [cpu, ram, storage, screen].filter(Boolean).join(", ");
+
+  if (sourceDescription && !/^(premium|genuine)\s+/i.test(sourceDescription.trim())) {
+    return sourceDescription.trim();
+  }
+
+  const location = "Intech Computer Shop in Nairobi, Kenya";
+  if (category === "laptops-desktops") {
+    const useCase = /gaming|legion|rtx|playstation/i.test(lower)
+      ? "gaming and demanding applications"
+      : /thinkpad|elitebook|probook|latitude|lifebook/i.test(lower)
+        ? "business, office and professional work"
+        : /yoga|x360|touchscreen|2-in-1/i.test(lower)
+          ? "study, mobility and everyday productivity"
+          : "work, study and everyday computing";
+    return `${cleanName} is a ${condition} ${brand} computer designed for ${useCase}. ${details ? `Key specifications include ${details}. ` : ""}Buy from ${location} with Nairobi delivery and nationwide shipping.`;
+  }
+
+  const categoryCopy: Record<string, string> = {
+    tvs: "Enjoy home entertainment with a practical display solution for streaming, TV and everyday viewing.",
+    "phones-tablets": "A practical mobile device for communication, entertainment, study and everyday productivity.",
+    "computer-accessories": "A useful computer accessory for improving your everyday workstation setup and productivity.",
+    "data-storage": "A practical storage solution for backing up, transferring and managing your files.",
+    printers: "A practical printing solution for home, school and office use.",
+    "cctv-networking": "A reliable networking and security solution for home, office and business environments.",
+    "scanners-projectors": "A practical solution for presentations, teaching, meetings and office workflows.",
+    gaming: "Built for an engaging gaming and entertainment setup.",
+    "antivirus-software": "Security software designed to help protect your devices and digital files.",
+    audio: "A convenient audio accessory for calls, music and everyday entertainment.",
+    ups: "Power protection equipment designed to help keep compatible electronics running during power interruptions.",
+    ac: "A practical cooling solution for comfortable indoor spaces.",
+    fridges: "A practical home appliance for reliable food and beverage storage.",
+  };
+
+  return `${cleanName} from ${brand} is ${categoryCopy[category] ?? "a practical technology product for everyday use."} ${details ? `Key details: ${details}. ` : ""}Available at ${location} with Nairobi delivery and nationwide shipping.`;
+}
+
 function capitalizeSlug(value: string) {
   return value
     .split("-")
@@ -119,9 +169,7 @@ export function mapDatabaseProduct(row: ProductRow): Product {
       row.old_price && Number(row.old_price) > Number(row.price ?? 0)
         ? Number(row.old_price)
         : undefined,
-    description:
-      row.description ??
-      `Premium ${row.name} from ${brand} — available at Intech Computer Shop with Nairobi delivery and nationwide shipping.`,
+    description: buildProductDescription(row.name, brand, category, row.description),
     imageUrl: imageUrls[0],
     imageUrls: imageUrls.length ? imageUrls : undefined,
   };
