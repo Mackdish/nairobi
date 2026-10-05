@@ -20,7 +20,8 @@ export const Route = createFileRoute("/")({
     products: await fetchStorefrontProducts(),
   }),
   head: () => ({
-    meta: [
+    links: [{ rel: "canonical", href: "https://intechcomputershop.co.ke/" }],
+    meta: [ [
       { title: "Intech Computer Shop — Laptops, TVs & Electronics in Kenya" },
       {
         name: "description",
