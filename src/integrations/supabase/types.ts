@@ -86,6 +86,60 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_posts: {
+        Row: {
+          id: string
+          title: string
+          slug: string
+          excerpt: string | null
+          content: string
+          featured_image: string | null
+          category: string
+          tags: string[]
+          author_name: string
+          status: string
+          published_at: string | null
+          seo_title: string | null
+          seo_description: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          slug: string
+          excerpt?: string | null
+          content?: string
+          featured_image?: string | null
+          category?: string
+          tags?: string[]
+          author_name?: string
+          status?: string
+          published_at?: string | null
+          seo_title?: string | null
+          seo_description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          slug?: string
+          excerpt?: string | null
+          content?: string
+          featured_image?: string | null
+          category?: string
+          tags?: string[]
+          author_name?: string
+          status?: string
+          published_at?: string | null
+          seo_title?: string | null
+          seo_description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           active: boolean
