@@ -2,7 +2,7 @@ import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-rout
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { SiteLayout } from "@/components/site-layout";
-import { LayoutDashboard, Package, ShoppingBag, Users, AlertTriangle, Tag, BarChart3, Settings } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, Users, AlertTriangle, Tag, BarChart3, Settings, BookOpen } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -48,6 +48,7 @@ function AdminLayout() {
           <h2 className="px-3 mb-3 text-xs uppercase tracking-wide text-muted-foreground font-semibold">Admin</h2>
           <NavItem to="/admin" icon={<LayoutDashboard className="h-4 w-4" />} label="Overview" />
           <NavItem to="/admin/products" icon={<Package className="h-4 w-4" />} label="Products" />
+          <NavItem to="/admin/blog" icon={<BookOpen className="h-4 w-4" />} label="Blog" />
           <NavItem to="/admin/orders" icon={<ShoppingBag className="h-4 w-4" />} label="Orders" />
           <NavItem to="/admin/customers" icon={<Users className="h-4 w-4" />} label="Customers" />
           <NavItem to="/admin/coupons" icon={<Tag className="h-4 w-4" />} label="Coupons" />
