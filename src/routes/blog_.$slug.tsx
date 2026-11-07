@@ -56,7 +56,7 @@ function BlogArticlePage() {
           </div>
           <h1 className="mt-5 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">{post.title}</h1>
           {post.excerpt && <p className="mt-5 text-xl leading-8 text-muted-foreground">{post.excerpt}</p>}
-          {post.featured_image && <img src={post.featured_image} alt={post.title} className="mt-8 aspect-[16/8] w-full rounded-2xl object-cover" />}
+          {post.featured_image && <img referrerPolicy="no-referrer" src={post.featured_image} alt={post.title} className="mt-8 aspect-[16/8] w-full rounded-2xl object-cover" />}
         </div>
 
         <div className="prose prose-stone mt-10 max-w-none dark:prose-invert">

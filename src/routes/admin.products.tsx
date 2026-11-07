@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeImageUrl } from "@/lib/image-url";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,7 +91,7 @@ function normalizeImageUrls(urls: unknown, primary?: string | null) {
   return Array.from(
     new Set(
       [...list, primary]
-        .map((url) => (typeof url === "string" ? url.trim() : ""))
+        .map((url) => (typeof url === "string" ? normalizeImageUrl(url) : ""))
         .filter(Boolean),
     ),
   );
@@ -341,7 +342,7 @@ function AdminProductsPage() {
                         <TableCell>
                           <div className="flex items-center gap-3">
                             {p.image_url ? (
-                              <img
+                              <img referrerPolicy="no-referrer"
                                 src={p.image_url}
                                 alt={p.name}
                                 className="h-10 w-10 rounded object-cover bg-muted"
@@ -622,6 +623,7 @@ function ImageUploader({
 }) {
   const [uploading, setUploading] = useState(false);
   const [urlInput, setUrlInput] = useState("");
+  const [checking, setChecking] = useState(false);
 
   async function uploadFile(file: File) {
     if (!file.type.startsWith("image/")) {
@@ -665,9 +667,24 @@ function ImageUploader({
     onChange(value.filter((_, i) => i !== index));
   }
 
-  function addPastedUrl() {
-    const next = urlInput.trim();
+  async function addPastedUrl() {
+    const next = normalizeImageUrl(urlInput);
     if (!next) return;
+    setChecking(true);
+    const ok = await new Promise<boolean>((resolve) => {
+      const img = new Image();
+      img.referrerPolicy = "no-referrer";
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = next;
+    });
+    setChecking(false);
+    if (!ok) {
+      toast.error(
+        "That URL didn't load as an image. Use a direct image link (right-click the image → Copy image address), not a web page link.",
+      );
+      return;
+    }
     onChange(normalizeImageUrls([...value, next]));
     setUrlInput("");
   }
@@ -677,7 +694,7 @@ function ImageUploader({
       <div className="flex flex-wrap gap-2">
         {value.map((url, index) => (
           <div key={`${url}-${index}`} className="relative w-24 h-24 rounded-md border bg-muted overflow-hidden">
-            <img src={url} alt={`Product ${index + 1}`} className="w-full h-full object-cover" />
+            <img referrerPolicy="no-referrer" src={url} alt={`Product ${index + 1}`} className="w-full h-full object-cover" />
             {index === 0 && (
               <span className="absolute left-1 bottom-1 rounded bg-background/90 px-1.5 py-0.5 text-[10px] font-medium">
                 Primary
@@ -722,7 +739,8 @@ function ImageUploader({
           placeholder="Paste an image URL"
           className="text-xs"
         />
-        <Button type="button" variant="outline" onClick={addPastedUrl}>
+        <Button type="button" variant="outline" onClick={addPastedUrl} disabled={checking}>
+          {checking && <Loader2 className="h-4 w-4 animate-spin" />}
           Add URL
         </Button>
       </div>

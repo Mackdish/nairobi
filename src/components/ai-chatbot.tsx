@@ -93,7 +93,7 @@ function ChatProductCard({ product, onAdd }: { product: ChatProduct; onAdd: () =
     <div className="rounded-xl border border-border bg-background overflow-hidden">
       <div className="flex gap-2 p-2">
         <div className={`h-16 w-16 rounded-lg shrink-0 overflow-hidden ${product.bg}`}>
-          {product.imageUrl ? <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" /> : <div className="h-full w-full grid place-items-center text-2xl">{product.image}</div>}
+          {product.imageUrl ? <img referrerPolicy="no-referrer" src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" /> : <div className="h-full w-full grid place-items-center text-2xl">{product.image}</div>}
         </div>
         <div className="min-w-0 flex-1">
           <div className="font-semibold text-xs line-clamp-2">{product.name}</div>

@@ -66,7 +66,7 @@ function BlogPage() {
               <article key={post.id} className="group overflow-hidden rounded-xl border bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
                 <Link to="/blog/$slug" params={{ slug: post.slug }}>
                   {post.featured_image ? (
-                    <img src={post.featured_image} alt={post.title} className="aspect-[16/9] w-full object-cover" />
+                    <img referrerPolicy="no-referrer" src={post.featured_image} alt={post.title} className="aspect-[16/9] w-full object-cover" />
                   ) : (
                     <div className="flex aspect-[16/9] items-center justify-center bg-muted text-5xl">💻</div>
                   )}

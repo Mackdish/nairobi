@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeImageUrl } from "@/lib/image-url";
 import type { Database } from "@/integrations/supabase/types";
 import { CATEGORIES, PRODUCTS, type Product } from "@/lib/catalog";
 
@@ -164,7 +165,11 @@ export function mapDatabaseProduct(row: ProductRow): Product {
   const categoryName = CATEGORIES.find((item) => item.slug === category)?.name ?? capitalizeSlug(category);
   const brand = getBrandFromName(row.name) || categoryName.split(" ")[0] || "Intech";
   const imageUrls = Array.from(
-    new Set([...(row.image_urls ?? []), row.image_url].filter((url): url is string => Boolean(url))),
+    new Set(
+      [...(row.image_urls ?? []), row.image_url]
+        .map((url) => normalizeImageUrl(url))
+        .filter(Boolean),
+    ),
   );
 
   return {

@@ -264,7 +264,7 @@ function CheckoutPage() {
                 <div key={i.product.id} className="flex gap-2 items-center text-sm">
                   <div className={`h-12 w-12 rounded overflow-hidden shrink-0 ${i.product.bg}`}>
                     {i.product.imageUrl ? (
-                      <img src={i.product.imageUrl} alt={i.product.name} className="h-full w-full object-cover" />
+                      <img referrerPolicy="no-referrer" src={i.product.imageUrl} alt={i.product.name} className="h-full w-full object-cover" />
                     ) : (
                       <div className="h-full w-full grid place-items-center text-2xl">{i.product.image}</div>
                     )}

@@ -31,7 +31,7 @@ export function ProductVisual({
   return (
     <div className={cn("relative overflow-hidden", bg, className)}>
       {showImage ? (
-        <img
+        <img referrerPolicy="no-referrer"
           src={imageUrl}
           alt={alt}
           loading="lazy"
