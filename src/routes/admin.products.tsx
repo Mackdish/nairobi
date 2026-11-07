@@ -96,6 +96,22 @@ function normalizeImageUrls(urls: unknown, primary?: string | null) {
   );
 }
 
+// PostgREST reports a missing column as PGRST204 (schema cache) or Postgres 42703.
+// That happens when the gallery/offer-pricing migration hasn't been applied yet.
+function isMissingColumnError(error: { code?: string; message?: string } | null) {
+  if (!error) return false;
+  return (
+    error.code === "PGRST204" ||
+    error.code === "42703" ||
+    /could not find the '.*' column|column .* does not exist/i.test(error.message ?? "")
+  );
+}
+
+function withoutGalleryColumns<T extends Record<string, unknown>>(payload: T) {
+  const { old_price: _oldPrice, image_urls: _imageUrls, ...legacy } = payload;
+  return legacy;
+}
+
 function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -461,15 +477,39 @@ function ProductDialog({
         .select()
         .single();
       setSaving(false);
-      if (error) return toast.error("Update failed");
+      if (error) {
+        console.error("Update product failed:", error);
+        return toast.error(`Update failed: ${error.message}`);
+      }
       toast.success("Product updated");
       onSaved(data as Product);
     } else {
-      const { data, error } = await supabase.from("products").insert(payload).select().single();
+      let { data, error } = await supabase.from("products").insert(payload).select().single();
+      let usedLegacySchema = false;
+      if (isMissingColumnError(error)) {
+        // Live DB is missing old_price / image_urls: retry with the original columns only.
+        console.warn("products insert failed, retrying without gallery columns:", error);
+        ({ data, error } = await supabase
+          .from("products")
+          .insert(withoutGalleryColumns(payload))
+          .select()
+          .single());
+        usedLegacySchema = !error;
+      }
       setSaving(false);
-      if (error) return toast.error("Create failed");
-      toast.success("Product created");
-      onSaved(data as Product);
+      if (error) {
+        console.error("Create product failed:", error);
+        return toast.error(`Create failed: ${error.message}`);
+      }
+      if (usedLegacySchema) {
+        toast.warning(
+          "Product created, but extra images and original price were not saved. Apply the latest Supabase migration (20260528120000).",
+        );
+      } else {
+        toast.success("Product created");
+      }
+      const created = data as Partial<Product>;
+      onSaved({ ...created, image_urls: created.image_urls ?? [], old_price: created.old_price ?? null } as Product);
     }
   }
 
