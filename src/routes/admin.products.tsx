@@ -442,6 +442,7 @@ function ProductDialog({
       : EMPTY_FORM,
   );
   const [saving, setSaving] = useState(false);
+  const [pendingUrl, setPendingUrl] = useState("");
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -454,7 +455,8 @@ function ProductDialog({
       return;
     }
     setSaving(true);
-    const image_urls = normalizeImageUrls(form.image_urls);
+    // Include an image URL that was typed/pasted but never confirmed with "Add URL".
+    const image_urls = normalizeImageUrls([...form.image_urls, pendingUrl]);
     const price = Number(form.price) || 0;
     const old_price = Number(form.old_price) || null;
     const payload = {
@@ -582,6 +584,8 @@ function ProductDialog({
           <ImageUploader
             value={form.image_urls}
             onChange={(urls) => set("image_urls", urls)}
+            urlInput={pendingUrl}
+            onUrlInputChange={setPendingUrl}
           />
         </div>
         <div className="space-y-2">
@@ -617,12 +621,15 @@ function ProductDialog({
 function ImageUploader({
   value,
   onChange,
+  urlInput,
+  onUrlInputChange: setUrlInput,
 }: {
   value: string[];
   onChange: (urls: string[]) => void;
+  urlInput: string;
+  onUrlInputChange: (v: string) => void;
 }) {
   const [uploading, setUploading] = useState(false);
-  const [urlInput, setUrlInput] = useState("");
   const [checking, setChecking] = useState(false);
 
   async function uploadFile(file: File) {
@@ -736,6 +743,12 @@ function ImageUploader({
         <Input
           value={urlInput}
           onChange={(e) => setUrlInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              addPastedUrl();
+            }
+          }}
           placeholder="Paste an image URL"
           className="text-xs"
         />
