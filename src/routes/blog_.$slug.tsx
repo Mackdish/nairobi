@@ -1,7 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
 import { CalendarDays, ArrowLeft } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { SiteLayout } from "@/components/site-layout";
 import { EDITORIAL_POSTS } from "@/lib/editorial-posts";
 
@@ -13,6 +11,9 @@ type BlogPost = {
 };
 
 export const Route = createFileRoute("/blog_/$slug")({
+  loader: ({ params }) => ({
+    post: EDITORIAL_POSTS.find((item) => item.slug === params.slug) ?? null,
+  }),
   head: ({ params }) => {
     const post = EDITORIAL_POSTS.find((item) => item.slug === params.slug);
     const title = post?.seo_title || post?.title || "Technology & Computer Advice | Intech Computer Shop";
@@ -35,46 +36,18 @@ export const Route = createFileRoute("/blog_/$slug")({
 
 function BlogArticlePage() {
   const { slug } = Route.useParams();
-  const editorialPost = EDITORIAL_POSTS.find((item) => item.slug === slug) ?? null;
-  const [post, setPost] = useState<BlogPost | null>(editorialPost);
-  const [loading, setLoading] = useState(!editorialPost);
+  const { post } = Route.useLoaderData();
 
-  useEffect(() => {
-    // Editorial articles are bundled with the site. Render them immediately instead
-    // of waiting for Supabase, which may be unavailable or contain an older duplicate.
-    if (editorialPost) {
-      setPost(editorialPost);
-      setLoading(false);
-      return;
-    }
-
-    let active = true;
-    setPost(null);
-    setLoading(true);
-
-    supabase.from("blog_posts")
-      .select("*")
-      .eq("slug", slug)
-      .eq("status", "published")
-      .not("published_at", "is", null)
-      .lte("published_at", new Date().toISOString())
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (!active) return;
-        setPost(!error && data ? (data as BlogPost) : null);
-        setLoading(false);
-      })
-      .catch(() => {
-        if (!active) return;
-        setPost(null);
-        setLoading(false);
-      });
-
-    return () => { active = false; };
-  }, [slug, editorialPost]);
-
-  if (loading) return <SiteLayout><div className="container mx-auto px-4 py-20 text-center text-muted-foreground">Loading article…</div></SiteLayout>;
-  if (!post) return <SiteLayout><div className="container mx-auto max-w-2xl px-4 py-20 text-center"><h1 className="text-3xl font-bold">Article not found</h1><Link to="/blog" className="mt-5 inline-flex text-primary hover:underline">← Back to blog</Link></div></SiteLayout>;
+  if (!post) {
+    return (
+      <SiteLayout>
+        <div className="container mx-auto max-w-2xl px-4 py-20 text-center">
+          <h1 className="text-3xl font-bold">Article not found</h1>
+          <a href="/blog" className="mt-5 inline-flex text-primary hover:underline">← Back to blog</a>
+        </div>
+      </SiteLayout>
+    );
+  }
 
   const canonical = `https://intechcomputershop.co.ke/blog/${encodeURIComponent(post.slug)}`;
   const description = post.seo_description || post.excerpt || makeExcerpt(post.content);
@@ -82,7 +55,7 @@ function BlogArticlePage() {
   return (
     <SiteLayout>
       <article className="container mx-auto max-w-4xl px-4 py-10">
-        <Link to="/blog" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary"><ArrowLeft className="h-4 w-4" /> All articles</Link>
+        <a href="/blog" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary"><ArrowLeft className="h-4 w-4" /> All articles</a>
         <div className="mt-7">
           <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
             <span className="rounded-full bg-primary/10 px-3 py-1 font-medium text-primary">{post.category}</span>
@@ -93,11 +66,9 @@ function BlogArticlePage() {
           {post.excerpt && <p className="mt-5 text-xl leading-8 text-muted-foreground">{post.excerpt}</p>}
           {post.featured_image && <img referrerPolicy="no-referrer" src={post.featured_image} alt={post.title} className="mt-8 aspect-[16/8] w-full rounded-2xl object-cover" />}
         </div>
-
         <div className="prose prose-stone mt-10 max-w-none dark:prose-invert">
           {renderContent(post.content || "")}
         </div>
-
         {post.tags?.length > 0 && (
           <div className="mt-10 flex flex-wrap gap-2 border-t pt-6">
             {post.tags.map((tag) => <span key={tag} className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">#{tag}</span>)}
