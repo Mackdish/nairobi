@@ -122,19 +122,19 @@ function BlogArticlePage() {
 }
 
 function renderContent(content: string) {
-  const blocks = content.replace(/\\r/g, "").split(/\\n\\s*\\n/).filter((block) => block.trim());
+  const blocks = content.replace(/\r/g, "").split(/\n\s*\n/).filter((item) => item.trim());
   return blocks.map((block, index) => {
-    const lines = block.trim().split("\\n").map((line) => line.trim()).filter(Boolean);
+    const lines = block.trim().split("\n").map((line) => line.trim()).filter(Boolean);
     const first = lines[0] ?? "";
 
     if (lines.length === 1 && first.startsWith("### ")) return <h3 key={index}>{first.slice(4)}</h3>;
     if (lines.length === 1 && first.startsWith("## ")) return <h2 key={index}>{first.slice(3)}</h2>;
     if (lines.length === 1 && first.startsWith("# ")) return <h2 key={index}>{first.slice(2)}</h2>;
 
-    const isList = lines.length > 0 && lines.every((line) => /^(- |\\* |\\d+\\. )/.test(line));
+    const isList = lines.length > 0 && lines.every((line) => /^(- |\* |\d+\. )/.test(line));
     if (isList) {
-      const ordered = /^\\d+\\. /.test(lines[0]);
-      const items = lines.map((line) => line.replace(/^(?:- |\\* |\\d+\\. )/, ""));
+      const ordered = /^\d+\. /.test(lines[0]);
+      const items = lines.map((line) => line.replace(/^(?:- |\* |\d+\. )/, ""));
       return ordered
         ? <ol key={index}>{items.map((item, itemIndex) => <li key={itemIndex}>{item}</li>)}</ol>
         : <ul key={index}>{items.map((item, itemIndex) => <li key={itemIndex}>{item}</li>)}</ul>;
