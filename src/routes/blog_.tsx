@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { CalendarDays, ArrowRight, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteLayout } from "@/components/site-layout";
+import { EDITORIAL_POSTS } from "@/lib/editorial-posts";
 
 type BlogPost = {
   id: string; title: string; slug: string; excerpt: string | null; content: string;
@@ -37,7 +38,20 @@ function BlogPage() {
       .not("published_at", "is", null)
       .lte("published_at", new Date().toISOString())
       .order("published_at", { ascending: false })
-      .then(({ data }) => { setPosts((data as BlogPost[]) ?? []); setLoading(false); });
+      .then(({ data, error }) => {
+        const databasePosts = !error && data ? (data as BlogPost[]) : [];
+        const merged = new Map<string, BlogPost>();
+        EDITORIAL_POSTS.forEach((post) => merged.set(post.slug, post));
+        databasePosts.forEach((post) => merged.set(post.slug, post));
+        setPosts(Array.from(merged.values()).sort((a, b) =>
+          new Date(b.published_at ?? b.created_at).getTime() - new Date(a.published_at ?? a.created_at).getTime()
+        ));
+        setLoading(false);
+      })
+      .catch(() => {
+        setPosts(EDITORIAL_POSTS);
+        setLoading(false);
+      });
   }, []);
 
   return (
