@@ -13,13 +13,23 @@ type BlogPost = {
 };
 
 export const Route = createFileRoute("/blog/$slug")({
-  head: () => ({
-    meta: [
-      { title: "Blog Article | Intech Computer Shop" },
-      { name: "description", content: "Technology and computer buying advice from Intech Computer Shop in Nairobi, Kenya." },
-      { property: "og:type", content: "article" },
-    ],
-  }),
+  head: ({ params }) => {
+    const post = EDITORIAL_POSTS.find((item) => item.slug === params.slug);
+    const title = post?.seo_title || post?.title || "Technology & Computer Advice | Intech Computer Shop";
+    const description = post?.seo_description || post?.excerpt || "Technology and computer buying advice from Intech Computer Shop in Nairobi, Kenya.";
+    const canonical = `https://intechcomputershop.co.ke/blog/${encodeURIComponent(params.slug)}`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: post?.title || title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "article" },
+        { property: "og:url", content: canonical },
+      ],
+      links: [{ rel: "canonical", href: canonical }],
+    };
+  },
   component: BlogArticlePage,
 });
 
