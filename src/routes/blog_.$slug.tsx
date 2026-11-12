@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { CalendarDays, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteLayout } from "@/components/site-layout";
+import { EDITORIAL_POSTS } from "@/lib/editorial-posts";
 
 type BlogPost = {
   id: string; title: string; slug: string; excerpt: string | null; content: string;
@@ -35,7 +36,15 @@ function BlogArticlePage() {
       .not("published_at", "is", null)
       .lte("published_at", new Date().toISOString())
       .maybeSingle()
-      .then(({ data }) => { setPost(data as BlogPost | null); setLoading(false); });
+      .then(({ data }) => {
+        const editorialPost = EDITORIAL_POSTS.find((item) => item.slug === slug) ?? null;
+        setPost((data as BlogPost | null) ?? editorialPost);
+        setLoading(false);
+      })
+      .catch(() => {
+        setPost(EDITORIAL_POSTS.find((item) => item.slug === slug) ?? null);
+        setLoading(false);
+      });
   }, [slug]);
 
   if (loading) return <SiteLayout><div className="container mx-auto px-4 py-20 text-center text-muted-foreground">Loading article…</div></SiteLayout>;
