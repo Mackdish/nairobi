@@ -12,7 +12,7 @@ type BlogPost = {
   created_at: string; updated_at: string;
 };
 
-export const Route = createFileRoute("/blog/$slug")({
+export const Route = createFileRoute("/blog_/$slug")({
   head: ({ params }) => {
     const post = EDITORIAL_POSTS.find((item) => item.slug === params.slug);
     const title = post?.seo_title || post?.title || "Technology & Computer Advice | Intech Computer Shop";
