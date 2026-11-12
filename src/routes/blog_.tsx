@@ -12,7 +12,7 @@ type BlogPost = {
   created_at: string; updated_at: string;
 };
 
-export const Route = createFileRoute("/blog")({
+export const Route = createFileRoute("/blog_")({
   head: () => ({
     meta: [
       { title: "Technology & Computer Buying Guides in Kenya | Intech Blog" },
