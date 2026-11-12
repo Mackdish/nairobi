@@ -25,6 +25,11 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // Server-only Cloudflare runtime module used by the /api/* routes.
+      "cloudflare:workers": path.resolve(
+        __dirname,
+        "src/spa-stubs/cloudflare-workers.ts",
+      ),
       // Stub server-only entry points so the SPA build never tries to bundle them.
       "@/integrations/supabase/client.server": path.resolve(
         __dirname,
