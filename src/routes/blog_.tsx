@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { CalendarDays, ArrowRight, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -78,7 +78,7 @@ function BlogPage() {
           <div className="grid gap-7 md:grid-cols-2 lg:grid-cols-3">
             {posts.map((post) => (
               <article key={post.id} className="group overflow-hidden rounded-xl border bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                <Link to="/blog/$slug" params={{ slug: post.slug }}>
+                <a href={`/blog/${encodeURIComponent(post.slug)}`}>
                   {post.featured_image ? (
                     <img referrerPolicy="no-referrer" src={post.featured_image} alt={post.title} className="aspect-[16/9] w-full object-cover" />
                   ) : (
