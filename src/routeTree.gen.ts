@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as BlogRouteImport } from './routes/blog_'
 import { Route as BlogSlugRouteImport } from './routes/blog_.$slug'
 import { Route as AdminBlogRouteImport } from './routes/admin.blog'
+import { Route as SitemapRouteImport } from './routes/sitemap[.]xml'
+import { Route as RobotsRouteImport } from './routes/robots[.]txt'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as WarrantyRouteImport } from './routes/warranty'
 import { Route as TrackOrderRouteImport } from './routes/track-order'
@@ -111,6 +113,16 @@ const AdminBlogRoute = AdminBlogRouteImport.update({
   path: '/blog',
   getParentRoute: () => AdminRoute,
 } as any)
+const SitemapRoute = SitemapRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsRoute = RobotsRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AccountRoute = AccountRouteImport.update({
   id: '/account',
   path: '/account',
@@ -173,12 +185,6 @@ export interface FileRoutesByFullPath {
   '/blog': typeof BlogRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/admin/blog': typeof AdminBlogRoute
-  '/blog': typeof BlogRoute
-  '/blog/$slug': typeof BlogSlugRoute
-  '/admin/blog': typeof AdminBlogRoute
-  '/blog': typeof BlogRoute
-  '/blog/$slug': typeof BlogSlugRoute
-  '/admin/blog': typeof AdminBlogRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
@@ -200,6 +206,8 @@ export interface FileRoutesByFullPath {
   '/category/$slug': typeof CategorySlugRoute
   '/product/$id': typeof ProductIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/sitemap.xml': typeof SitemapRoute
+  '/robots.txt': typeof RobotsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -224,6 +232,11 @@ export interface FileRoutesByTo {
   '/category/$slug': typeof CategorySlugRoute
   '/product/$id': typeof ProductIdRoute
   '/admin': typeof AdminIndexRoute
+  '/blog': typeof BlogRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/admin/blog': typeof AdminBlogRoute
+  '/sitemap.xml': typeof SitemapRoute
+  '/robots.txt': typeof RobotsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -250,6 +263,11 @@ export interface FileRoutesById {
   '/category/$slug': typeof CategorySlugRoute
   '/product/$id': typeof ProductIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/blog': typeof BlogRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/admin/blog': typeof AdminBlogRoute
+  '/sitemap.xml': typeof SitemapRoute
+  '/robots.txt': typeof RobotsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -277,6 +295,11 @@ export interface FileRouteTypes {
     | '/category/$slug'
     | '/product/$id'
     | '/admin/'
+    | '/blog'
+    | '/blog/$slug'
+    | '/admin/blog'
+    | '/sitemap.xml'
+    | '/robots.txt'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -301,6 +324,11 @@ export interface FileRouteTypes {
     | '/category/$slug'
     | '/product/$id'
     | '/admin'
+    | '/blog'
+    | '/blog/$slug'
+    | '/admin/blog'
+    | '/sitemap.xml'
+    | '/robots.txt'
   id:
     | '__root__'
     | '/'
@@ -326,12 +354,19 @@ export interface FileRouteTypes {
     | '/category/$slug'
     | '/product/$id'
     | '/admin/'
+    | '/blog'
+    | '/blog/$slug'
+    | '/admin/blog'
+    | '/sitemap.xml'
+    | '/robots.txt'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BlogRoute: typeof BlogRoute
   BlogSlugRoute: typeof BlogSlugRoute
+  SitemapRoute: typeof SitemapRoute
+  RobotsRoute: typeof RobotsRoute
   AccountRoute: typeof AccountRoute
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
@@ -449,6 +484,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBlogRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -564,6 +613,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BlogRoute: BlogRoute,
   BlogSlugRoute: BlogSlugRoute,
+  SitemapRoute: SitemapRoute,
+  RobotsRoute: RobotsRoute,
   AccountRoute: AccountRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
