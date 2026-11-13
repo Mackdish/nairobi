@@ -504,7 +504,7 @@ Intech Computer Shop provides online ordering, M-Pesa payment options and delive
     seo_description: "Shop for electronics online safely in Kenya. Verify sellers, compare specifications, use secure payment methods and check delivery and warranty terms.",
     created_at: publishedAt,
     updated_at: publishedAt,
-  },,
+  },
   {
     id: "editorial-laptop-battery-draining-fast-improve-battery-life",
     title: "Laptop Battery Draining Fast? 9 Ways to Improve Battery Life",
